@@ -1,7 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const Shop = require('../models/Shop');
-const auth = require('../middleware/auth'); // We need to create this middleware
+const auth = require('../middleware/auth');
+
+// Get nearby shops (Alias for /?lat=...&lng=...)
+router.get('/nearby', async (req, res) => {
+    const { lat, lng, radius = 5000 } = req.query;
+    if (!lat || !lng) {
+        return res.status(400).json({ msg: 'Please provide lat and lng parameters' });
+    }
+
+    try {
+        const shops = await Shop.find({
+            location: {
+                $near: {
+                    $geometry: {
+                        type: "Point",
+                        coordinates: [parseFloat(lng), parseFloat(lat)]
+                    },
+                    $maxDistance: parseInt(radius)
+                }
+            }
+        }).populate('owner', 'name email');
+        res.json(shops);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
 
 // Get all shops (with filters & location)
 router.get('/', async (req, res) => {

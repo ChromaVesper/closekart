@@ -1,0 +1,11 @@
+# Render Backend Configuration
+# This file configures the backend deployment on Render
+
+# Start command (Render will use this to start the server)
+start = "npm start"
+
+# Environment
+NODE_ENV = "production"
+
+# Port (Render sets PORT automatically)
+PORT = 8000

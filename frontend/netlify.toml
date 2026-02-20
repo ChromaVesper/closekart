@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "environment": {
+    "VITE_API_URL": "https://closekart-backend.onrender.com/api"
+  }
+}

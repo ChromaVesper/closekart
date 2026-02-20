@@ -1,20 +1,12 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { useLoadScript } from '@react-google-maps/api';
 
 const LocationContext = createContext();
-
-const libraries = ['places'];
 
 export const LocationProvider = ({ children }) => {
     const [location, setLocation] = useState(null); // { lat, lng }
     const [address, setAddress] = useState('Anisabad, Patna (Default)');
     const [loadingLocation, setLoadingLocation] = useState(true);
     const [error, setError] = useState(null);
-
-    const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY", // Replace with valid key
-        libraries,
-    });
 
     useEffect(() => {
         // Attempt to get user location on load
@@ -28,20 +20,7 @@ export const LocationProvider = ({ children }) => {
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     setLocation({ lat: latitude, lng: longitude });
-
-                    // If Google Maps API is loaded, try to reverse geocode
-                    if (isLoaded && window.google) {
-                        const geocoder = new window.google.maps.Geocoder();
-                        geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
-                            if (status === "OK" && results[0]) {
-                                setAddress(results[0].formatted_address);
-                            } else {
-                                setAddress("Detected Location");
-                            }
-                        });
-                    } else {
-                        setAddress("Current Location");
-                    }
+                    setAddress("Current Location");
                     setLoadingLocation(false);
                 },
                 (err) => {
@@ -59,7 +38,7 @@ export const LocationProvider = ({ children }) => {
     };
 
     return (
-        <LocationContext.Provider value={{ location, address, loadingLocation, error, getCurrentLocation, isMapsLoaded: isLoaded }}>
+        <LocationContext.Provider value={{ location, address, loadingLocation, error, getCurrentLocation }}>
             {children}
         </LocationContext.Provider>
     );

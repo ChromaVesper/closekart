@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { MapPin, ShoppingBag, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -11,15 +11,12 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch featured data (mock for now or API)
+        // Fetch featured data
         const fetchData = async () => {
             try {
-                // In a real app, these would be API calls
-                // const resShops = await axios.get('http://localhost:5000/api/shops');
-                // const resProducts = await axios.get('http://localhost:5000/api/products');
-
-                // For MVP without backend running yet, we might want to fail gracefully or show empty
-                // But let's assume backend is reachable or we handle error
+                const res = await api.get('/shops');
+                // Limit to 6 for homepage
+                setShops(res.data.slice(0, 6));
             } catch (error) {
                 console.error("Error fetching data", error);
             } finally {
@@ -78,10 +75,29 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Featured Shops (Placeholder) */}
-            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-yellow-800 text-center">
-                Backend connection pending. Run backend to see real shops.
-            </div>
+            {/* Featured Shops */}
+            <section>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">Featured Shops Near You</h2>
+                    <Link to="/search?type=shops" className="text-blue-600 font-medium hover:underline">View All</Link>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {shops.length > 0 ? (
+                            shops.map(shop => (
+                                <ShopCard key={shop._id} shop={shop} />
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center text-gray-500 py-8 bg-gray-50 rounded-lg">
+                                No shops found. Try running the backend seed script.
+                            </div>
+                        )}
+                    </div>
+                )}
+            </section>
 
         </div>
     );

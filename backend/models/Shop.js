@@ -48,4 +48,7 @@ const shopSchema = new mongoose.Schema({
     },
 });
 
+// Create geospatial index for location queries
+shopSchema.index({ 'location': '2dsphere' });
+
 module.exports = mongoose.model('Shop', shopSchema);

@@ -71,19 +71,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'CloseKart API is healthy', timestamp: new Date() });
-});
-
-app.get('/api', (req, res) => {
-    res.json({
+    res.status(200).json({
         status: 'OK',
-        message: 'CloseKart API is running',
-        timestamp: new Date()
+        service: 'CloseKart Backend',
+        timestamp: new Date().toISOString()
     });
 });
 
+app.get('/api', (req, res) => {
+    res.status(200).json({ status: 'OK', message: 'CloseKart API is running' });
+});
+
 app.get('/', (req, res) => {
-    res.send('CLOSEKART API is running');
+    res.status(200).send('CloseKart Backend is Live');
 });
 
 app.listen(PORT, () => {

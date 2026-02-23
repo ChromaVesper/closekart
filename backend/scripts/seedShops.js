@@ -1,5 +1,5 @@
 /*
- Seed 5 sample shops in Patna
+ Seed 5 sample shops in generic location
  Usage: node scripts/seedShops.js
 */
 
@@ -23,22 +23,22 @@ async function run() {
     await mongoose.connect(uri);
     console.log('Connected to MongoDB');
 
-    // Base coordinates for Patna
-    const baseLat = 25.5941;
-    const baseLng = 85.1376;
+    // Base coordinates for Sample City
+    const baseLat = 28.6139;
+    const baseLng = 77.2090;
 
     // Helper to offset coords slightly
     const jitter = (val, delta) => val + (Math.random() * 2 - 1) * delta;
 
     const samples = [
       {
-        name: 'Patna Fresh Mart',
-        shopName: 'Patna Fresh Mart',
+        name: 'Sample Fresh Mart',
+        shopName: 'Sample Fresh Mart',
         category: 'Grocery',
         latitude: jitter(baseLat, 0.01),
         longitude: jitter(baseLng, 0.01),
-        address: 'Fraser Road, Patna, Bihar 800001',
-        city: 'Patna',
+        address: '123 Main Street, Sample City, 100001',
+        city: 'Sample City',
       },
       {
         name: 'Ganga Electronics',
@@ -46,8 +46,8 @@ async function run() {
         category: 'Electronics',
         latitude: jitter(baseLat, 0.01),
         longitude: jitter(baseLng, 0.01),
-        address: 'Boring Road, Patna, Bihar 800001',
-        city: 'Patna',
+        address: '45 Tech Road, Sample City, 100001',
+        city: 'Sample City',
       },
       {
         name: 'Magadh Medicals',
@@ -55,8 +55,8 @@ async function run() {
         category: 'Pharmacy',
         latitude: jitter(baseLat, 0.01),
         longitude: jitter(baseLng, 0.01),
-        address: 'Kankarbagh, Patna, Bihar 800020',
-        city: 'Patna',
+        address: 'Health Avenue, Sample City, 100002',
+        city: 'Sample City',
       },
       {
         name: 'Ashoka Book Store',
@@ -64,8 +64,8 @@ async function run() {
         category: 'Books & Stationery',
         latitude: jitter(baseLat, 0.01),
         longitude: jitter(baseLng, 0.01),
-        address: 'Ashok Rajpath, Patna, Bihar 800004',
-        city: 'Patna',
+        address: 'Library Row, Sample City, 100004',
+        city: 'Sample City',
       },
       {
         name: 'Bihar Fashion Hub',
@@ -73,8 +73,8 @@ async function run() {
         category: 'Clothing',
         latitude: jitter(baseLat, 0.01),
         longitude: jitter(baseLng, 0.01),
-        address: 'Dak Bungalow Road, Patna, Bihar 800001',
-        city: 'Patna',
+        address: 'Fashion Street, Sample City, 100001',
+        city: 'Sample City',
       },
     ];
 

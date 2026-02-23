@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation as useRouteLocation } from 'react-router-dom';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
 import ShopCard from '../components/ShopCard';
 import { Filter, Search as SearchIcon } from 'lucide-react';
 import MapComponent from '../components/MapComponent';
-import { useLocation as useLocationContext } from '../contexts/LocationContext';
+import { useUserLocation } from '../context/LocationContext';
+
 const Search = () => {
-    const locationState = useLocation(); // Router location state
-    const { location, loadingLocation } = useLocationContext(); // Context location
+    const locationState = useRouteLocation(); // Router location state
+    const { coords } = useUserLocation(); // Real GPS location from context
     const queryParams = new URLSearchParams(locationState.search);
     const initialQuery = queryParams.get('q') || '';
     const categoryQuery = queryParams.get('category') || '';
@@ -35,9 +36,9 @@ const Search = () => {
             };
 
             // Add location if available
-            if (location) {
-                params.lat = location.lat;
-                params.lng = location.lng;
+            if (coords) {
+                params.lat = coords.latitude;
+                params.lng = coords.longitude;
             }
 
             if (type === 'products') {

@@ -1,42 +1,30 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    password: {
-        type: String,
-        required: true,
-    },
-    role: {
-        type: String,
-        enum: ['customer', 'shopkeeper', 'admin'],
-        default: 'customer',
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+    name: { type: String },
+    email: { type: String, unique: true, sparse: true },
+    phone: { type: String, unique: true, sparse: true },
+    password: { type: String },
+    avatar: { type: String },
+    googleId: { type: String },
+    provider: { type: String, default: "local" },
+    role: { type: String, enum: ["customer", "shopkeeper", "swap_keeper", "admin"], default: "customer" },
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
+}, { timestamps: true });
 
-// Password hashing middleware
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
+userSchema.pre("save", async function () {
+    if (!this.password) return;
+    if (!this.isModified("password")) return;
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
 });
 
-// Password verification method
-userSchema.methods.matchPassword = async function (enteredPassword) {
+userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

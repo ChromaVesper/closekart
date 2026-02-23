@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from "react";
+import { useUserLocation } from "../context/LocationContext";
 
 const MapComponent = () => {
   const [shops, setShops] = useState([]);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const { coords } = useUserLocation();
 
   useEffect(() => {
     const existingScript = document.getElementById("mappls-script");
@@ -11,10 +13,10 @@ const MapComponent = () => {
       "https://apis.mappls.com/advancedmaps/api/8f586cb9e9cc4041f08e7780e1bd8ce1/map_sdk?layer=vector&v=3.0";
 
     const initMap = () => {
-      if (window.mappls && !mapRef.current) {
+      if (window.mappls && !mapRef.current && coords?.latitude && coords?.longitude) {
         mapRef.current = new window.mappls.Map("map", {
-          center: [25.5941, 85.1376],
-          zoom: 13,
+          center: [coords.latitude, coords.longitude],
+          zoom: 15,
         });
       }
     };
@@ -29,18 +31,25 @@ const MapComponent = () => {
     } else {
       initMap();
     }
-  }, []);
 
-  // Fetch shops once on mount
+    // Dynamic re-centering when tracking live
+    if (mapRef.current && window.mappls && coords?.latitude && coords?.longitude) {
+      mapRef.current.setCenter({ lat: coords.latitude, lng: coords.longitude });
+    }
+  }, [coords?.latitude, coords?.longitude]);
+
+  // Fetch shops when location is available
   useEffect(() => {
+    if (!coords?.latitude || !coords?.longitude) return;
+
     const base = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
-    fetch(`${base}/shops`)
+    fetch(`${base}/shops?lat=${coords.latitude}&lng=${coords.longitude}`)
       .then((res) => res.json())
       .then((data) => {
         setShops(Array.isArray(data) ? data : []);
       })
       .catch((err) => console.error("Error loading shops:", err));
-  }, []);
+  }, [coords?.latitude, coords?.longitude]);
 
   // Add markers whenever shops change and map is ready
   useEffect(() => {

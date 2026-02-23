@@ -23,4 +23,16 @@ api.interceptors.request.use(
     }
 );
 
+export async function fetchShops(location) {
+    if (!location || !location.lat || !location.lng) return [];
+
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const res = await fetch(
+        `${base}/shops?lat=${location.lat}&lng=${location.lng}`
+    );
+
+    if (!res.ok) return [];
+    return res.json();
+}
+
 export default api;

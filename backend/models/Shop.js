@@ -14,25 +14,63 @@ const shopSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    address: {
+
+    // ── Address (text form) ────────────────────────────────────────────────────
+    address: {          // short address / street
         type: String,
-        required: true,
+        default: '',
     },
+    fullAddress: {       // complete reverse-geocoded address from map
+        type: String,
+        default: '',
+    },
+    landmark: {
+        type: String,
+        default: '',
+    },
+    city: {
+        type: String,
+        default: '',
+    },
+    state: {
+        type: String,
+        default: '',
+    },
+    pincode: {
+        type: String,
+        default: '',
+    },
+
+    // ── GeoJSON location (2dsphere) ─────────────────────────────────────────────
     location: {
         type: { type: String, default: 'Point', enum: ['Point'] },
-        coordinates: { type: [Number], index: '2dsphere' }, // [longitude, latitude]
+        coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
     },
+
+    // ── Location lock (permanent after first save) ──────────────────────────────
+    isLocationLocked: {
+        type: Boolean,
+        default: false,
+    },
+
+    // ── Shop image ─────────────────────────────────────────────────────────────
+    shopImage: {
+        type: String,
+        default: '',
+    },
+
+    // ── Metrics ─────────────────────────────────────────────────────────────────
     rating: {
         type: Number,
         default: 4.5,
     },
-    distanceKm: { // Mock distance for demo
-        type: Number,
-        default: 1.2,
-    },
     deliveryAvailable: {
         type: Boolean,
         default: false,
+    },
+    deliveryRadius: {
+        type: Number,
+        default: 5000, // metres
     },
     deliveryCharge: {
         type: Number,
@@ -48,7 +86,7 @@ const shopSchema = new mongoose.Schema({
     },
 });
 
-// Create geospatial index for location queries
-shopSchema.index({ 'location': '2dsphere' });
+// Geospatial index — required for $geoNear and $near queries
+shopSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Shop', shopSchema);

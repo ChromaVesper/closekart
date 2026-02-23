@@ -1,61 +1,86 @@
 const express = require('express');
 const router = express.Router();
 const Shop = require('../models/Shop');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/authMiddleware');
 
-// Get nearby shops (Alias for /?lat=...&lng=...)
+// GET /api/shops/nearby?lat=X&lng=Y&radius=R
+// Uses $geoNear aggregate so each result includes distanceMeters field
 router.get('/nearby', async (req, res) => {
     const { lat, lng, radius = 5000 } = req.query;
     if (!lat || !lng) {
-        return res.status(400).json({ msg: 'Please provide lat and lng parameters' });
+        return res.status(400).json({ msg: 'lat and lng are required' });
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const maxDist = parseInt(radius);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+        return res.status(400).json({ msg: 'lat and lng must be numbers' });
     }
 
     try {
-        const shops = await Shop.find({
-            location: {
-                $near: {
-                    $geometry: {
-                        type: "Point",
-                        coordinates: [parseFloat(lng), parseFloat(lat)]
-                    },
-                    $maxDistance: parseInt(radius)
-                }
-            }
-        }).populate('owner', 'name email');
+        const shops = await Shop.aggregate([
+            {
+                $geoNear: {
+                    near: { type: 'Point', coordinates: [longitude, latitude] },
+                    distanceField: 'distanceMeters',
+                    maxDistance: maxDist,
+                    spherical: true,
+                },
+            },
+            {
+                $addFields: {
+                    distanceKm: { $round: [{ $divide: ['$distanceMeters', 1000] }, 1] },
+                },
+            },
+            { $sort: { distanceMeters: 1 } },
+        ]);
+
         res.json(shops);
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        console.error('Nearby shops error:', err);
+        res.status(500).json({ msg: 'Server error', error: err.message });
     }
 });
 
-// Get all shops (with filters & location)
+// GET /api/shops?lat=X&lng=Y&radius=R — same as nearby but permissive (no error when coords missing)
 router.get('/', async (req, res) => {
-    const { lat, lng, distance = 5000 } = req.query; // distance in meters
-
     try {
-        let query = {};
-        if (lat && lng) {
-            query.location = {
-                $near: {
-                    $geometry: {
-                        type: "Point",
-                        coordinates: [parseFloat(lng), parseFloat(lat)]
-                    },
-                    $maxDistance: parseInt(distance)
-                }
-            };
-        }
+        const { lat, lng, radius = 10000 } = req.query;
 
-        const shops = await Shop.find(query).populate('owner', 'name email');
+        if (!lat || !lng) return res.status(200).json([]);
+
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+
+        if (isNaN(latitude) || isNaN(longitude)) return res.status(200).json([]);
+
+        const shops = await Shop.aggregate([
+            {
+                $geoNear: {
+                    near: { type: 'Point', coordinates: [longitude, latitude] },
+                    distanceField: 'distanceMeters',
+                    maxDistance: parseInt(radius),
+                    spherical: true,
+                },
+            },
+            {
+                $addFields: {
+                    distanceKm: { $round: [{ $divide: ['$distanceMeters', 1000] }, 1] },
+                },
+            },
+            { $sort: { distanceMeters: 1 } },
+        ]);
+
         res.json(shops);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+    } catch (error) {
+        console.error('Shops fetch error:', error);
+        res.status(200).json([]);
     }
 });
 
-// Get shop by ID
+// GET /api/shops/:id — get a single shop by ID
 router.get('/:id', async (req, res) => {
     try {
         const shop = await Shop.findById(req.params.id).populate('owner', 'name email');
@@ -66,9 +91,9 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Create a shop (Protected)
+// POST /api/shops — create shop (protected)
 router.post('/', auth, async (req, res) => {
-    const { shopName, category, address, phone, latitude, longitude } = req.body;
+    const { shopName, category, address, phone, latitude, longitude, deliveryRadius } = req.body;
     try {
         const newShop = new Shop({
             owner: req.user.id,
@@ -76,7 +101,11 @@ router.post('/', auth, async (req, res) => {
             category,
             address,
             phone,
-            location: { type: 'Point', coordinates: [longitude || 0, latitude || 0] } // Mock coords if not provided
+            deliveryRadius: deliveryRadius || 5000,
+            location: {
+                type: 'Point',
+                coordinates: [parseFloat(longitude) || 0, parseFloat(latitude) || 0],
+            },
         });
         const shop = await newShop.save();
         res.json(shop);

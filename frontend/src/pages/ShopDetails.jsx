@@ -19,7 +19,7 @@ const ShopDetails = () => {
                 category: 'Grocery',
                 rating: 4.8,
                 reviewCount: 124,
-                address: 'Anisabad Golambar, Patna',
+                address: '123 Main Street, Sample City',
                 phone: '9876543210',
                 distanceKm: 0.5,
                 deliveryAvailable: true,

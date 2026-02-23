@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Service = require('../models/Service');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/authMiddleware');
 
 // Get all services
 router.get('/', async (req, res) => {

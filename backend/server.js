@@ -29,7 +29,11 @@ const path = require('path');
 
 // CORS Configuration - exact match per requirement
 const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+        process.env.CLIENT_URL,
+        'http://localhost:5173',
+        'https://chromavesper.github.io'
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']

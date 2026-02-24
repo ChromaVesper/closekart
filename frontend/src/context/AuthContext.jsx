@@ -9,7 +9,8 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem("token");
 
         if (token) {
-            fetch("http://localhost:3001/api/profile/me", {
+            const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
+            fetch(`${API}/profile/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

@@ -13,6 +13,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { loginStore } = useAuth();
+    const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -42,7 +43,7 @@ const Login = () => {
         }
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/api/auth/send-otp', {
+            const res = await fetch(`${API}/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone })
@@ -65,7 +66,7 @@ const Login = () => {
         setErrorMsg('');
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/api/auth/verify-otp', {
+            const res = await fetch(`${API}/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, otp })
@@ -101,8 +102,8 @@ const Login = () => {
                             key={tab.key}
                             onClick={() => { setActiveTab(tab.key); setErrorMsg(''); }}
                             className={`flex-1 py-2 rounded-md text-sm font-semibold transition ${activeTab === tab.key
-                                    ? 'bg-blue-600 text-white shadow'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-blue-600 text-white shadow'
+                                : 'text-gray-600 hover:text-gray-900'
                                 }`}
                         >
                             {tab.label}
@@ -214,7 +215,7 @@ const Login = () => {
                         <p className="text-center text-gray-500 text-sm mb-4">Sign in securely with your Google account</p>
                         <button
                             type="button"
-                            onClick={() => window.location.href = "http://localhost:3001/api/auth/google"}
+                            onClick={() => window.location.href = `${API}/auth/google`}
                             className="w-full flex items-center justify-center bg-white text-gray-700 font-bold py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition transform active:scale-95 shadow-sm"
                         >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" className="w-5 h-5 mr-3" />

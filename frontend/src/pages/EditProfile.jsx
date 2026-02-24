@@ -27,7 +27,8 @@ const EditProfile = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3001/api/profile/update', {
+            const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
+            const res = await fetch(`${API}/profile/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, ShoppingBag, Heart, LogOut, Edit2, Save } from 'lucide-react';
 import AvatarUpload from '../components/AvatarUpload';
 
-const API = 'http://localhost:3001/api';
+const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
 
 const Profile = () => {
     const { user, logout } = useAuth();

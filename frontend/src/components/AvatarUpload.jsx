@@ -15,7 +15,8 @@ const AvatarUpload = ({ currentAvatar, onUpload }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3001/api/upload/avatar', {
+            const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
+            const res = await fetch(`${API}/upload/avatar`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import BottomNav from './components/BottomNav';
 
 // Pages
 import Home from './pages/Home';
@@ -51,9 +52,8 @@ function App() {
 
                 {/* ── Main Site (shared Navbar + Footer) ── */}
                 <Route path="/*" element={
-                    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col">
-                        <Navbar />
-                        <main className="container mx-auto px-4 py-8 flex-1">
+                    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col sm:bg-gray-100">
+                        <main className="flex-1 w-full max-w-md mx-auto bg-white mb-16 relative shadow-sm">
                             <Routes>
                                 <Route path="/" element={<Home />} />
                                 <Route path="/search" element={<Search />} />
@@ -87,7 +87,7 @@ function App() {
                                 } />
                             </Routes>
                         </main>
-                        <Footer />
+                        <BottomNav />
                     </div>
                 } />
             </Routes>

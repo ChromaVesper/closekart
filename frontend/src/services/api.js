@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -26,7 +26,7 @@ api.interceptors.request.use(
 export async function fetchShops(location) {
     if (!location || !location.lat || !location.lng) return [];
 
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const base = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
     const res = await fetch(
         `${base}/shops?lat=${location.lat}&lng=${location.lng}`
     );

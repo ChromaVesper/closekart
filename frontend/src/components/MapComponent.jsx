@@ -42,7 +42,7 @@ const MapComponent = () => {
   useEffect(() => {
     if (!coords?.latitude || !coords?.longitude) return;
 
-    const base = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+    const base = import.meta.env.VITE_API_URL || "https://closekart.onrender.com/api";
     fetch(`${base}/shops?lat=${coords.latitude}&lng=${coords.longitude}`)
       .then((res) => res.json())
       .then((data) => {

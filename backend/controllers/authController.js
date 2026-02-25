@@ -65,7 +65,7 @@ exports.forgotPassword = async (req, res) => {
         await user.save();
 
         // Create reset URL (pointing to frontend reset page)
-        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.FRONTEND_URL || 'https://chromavesper.github.io/closekart'}/reset-password/${resetToken}`;
 
         const message = `You are receiving this email because you (or someone else) has requested the reset of a password.\n\nPlease make a PUT request or click the link below to reset your password:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email.`;
 
@@ -141,10 +141,10 @@ exports.googleAuthSuccess = (req, res) => {
         const user = req.user;
         const token = generateToken(user._id || user.id);
         // Redirect to frontend with token exactly as specified
-        res.redirect(`http://localhost:5173/closekart/oauth-success?token=${token}`);
+        res.redirect(`${process.env.FRONTEND_URL || 'https://chromavesper.github.io/closekart'}/oauth-success?token=${token}`);
     } catch (error) {
         console.error("JWT Sign error during OAuth:", error);
-        res.redirect("http://localhost:5173/closekart/login");
+        res.redirect(`${process.env.FRONTEND_URL || 'https://chromavesper.github.io/closekart'}/login`);
     }
 };
 

@@ -181,10 +181,10 @@ router.get("/google/callback",
     (req, res) => {
         try {
             const token = generateToken(req.user._id || req.user.id);
-            res.redirect(`http://localhost:5173/closekart/oauth-success?token=${token}`);
+            res.redirect(`${process.env.FRONTEND_URL || "https://chromavesper.github.io/closekart"}/oauth-success?token=${token}`);
         } catch (error) {
             console.error("OAuth callback error:", error);
-            res.redirect("http://localhost:5173/closekart/login");
+            res.redirect(`${process.env.FRONTEND_URL || "https://chromavesper.github.io/closekart"}/login`);
         }
     }
 );

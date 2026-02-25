@@ -94,4 +94,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log("Google Callback URL:", process.env.GOOGLE_CALLBACK_URL);
 });

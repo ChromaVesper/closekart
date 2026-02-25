@@ -38,7 +38,7 @@ router.post("/avatar", authMiddleware, upload.single("avatar"), async (req, res)
             return res.status(400).json({ msg: "No file uploaded" });
         }
 
-        const avatarUrl = `http://localhost:3001/uploads/${req.file.filename}`;
+        const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
 
         await User.findByIdAndUpdate(req.user.id, { avatar: avatarUrl });
 

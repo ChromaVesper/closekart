@@ -30,27 +30,20 @@ const shortsRoutes = require('./routes/shorts');
 const path = require('path');
 
 // CORS Configuration - exact match per requirement
-const corsOptions = {
-    origin: [
-        process.env.CLIENT_URL,
-        'http://localhost:5173',
-        'https://chromavesper.github.io'
-    ].filter(Boolean),
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
-};
+app.use(cors({
+    origin: "https://chromavesper.github.io",
+    credentials: true
+}));
 
 // Middleware
-app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
 // Session setup for passport
 app.use(session({
-    secret: process.env.JWT_SECRET || 'secret_keyboard_cat',
+    secret: process.env.JWT_SECRET,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: false
 }));
 
 // Initialize Passport
@@ -95,9 +88,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log("Server running on port:", PORT);
-    console.log(
-        "ACTIVE GOOGLE CALLBACK URL:",
-        process.env.GOOGLE_CALLBACK_URL ||
-        "https://closekart.onrender.com/api/auth/google/callback"
-    );
+    console.log("Google OAuth Ready:", process.env.GOOGLE_CALLBACK_URL);
 });

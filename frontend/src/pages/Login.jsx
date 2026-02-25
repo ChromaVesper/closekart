@@ -215,7 +215,7 @@ const Login = () => {
                         <p className="text-center text-gray-500 text-sm mb-4">Sign in securely with your Google account</p>
                         <button
                             type="button"
-                            onClick={() => window.location.href = `${API}/auth/google`}
+                            onClick={() => window.location.href = "https://closekart.onrender.com/api/auth/google"}
                             className="w-full flex items-center justify-center bg-white text-gray-700 font-bold py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition transform active:scale-95 shadow-sm"
                         >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" className="w-5 h-5 mr-3" />

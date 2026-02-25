@@ -175,27 +175,16 @@ router.get("/me", authMiddleware, async (req, res) => {
 // ==================== GOOGLE OAUTH ====================
 
 router.get("/google",
-    (req, res, next) => {
-        console.log("LOGIN REQUEST RECEIVED");
-        console.log("EXPECTED CALLBACK URL:", process.env.GOOGLE_CALLBACK_URL);
-        next();
-    },
-    passport.authenticate("google", {
-        scope: ["profile", "email"],
-        prompt: "select_account"
-    })
+    passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
 router.get("/google/callback",
-    passport.authenticate("google", { session: false, failureRedirect: "/login" }),
+    passport.authenticate("google", {
+        failureRedirect: process.env.FRONTEND_URL,
+        session: true
+    }),
     (req, res) => {
-        try {
-            const token = generateToken(req.user._id || req.user.id);
-            res.redirect(`${process.env.FRONTEND_URL || "https://chromavesper.github.io/closekart"}/oauth-success?token=${token}`);
-        } catch (error) {
-            console.error("OAuth callback error:", error);
-            res.redirect(`${process.env.FRONTEND_URL || "https://chromavesper.github.io/closekart"}/login`);
-        }
+        res.redirect(process.env.FRONTEND_URL + "/closekart/");
     }
 );
 

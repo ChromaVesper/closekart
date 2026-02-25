@@ -175,6 +175,11 @@ router.get("/me", authMiddleware, async (req, res) => {
 // ==================== GOOGLE OAUTH ====================
 
 router.get("/google",
+    (req, res, next) => {
+        console.log("LOGIN REQUEST RECEIVED");
+        console.log("EXPECTED CALLBACK URL:", process.env.GOOGLE_CALLBACK_URL);
+        next();
+    },
     passport.authenticate("google", {
         scope: ["profile", "email"],
         prompt: "select_account"

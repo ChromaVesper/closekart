@@ -10,6 +10,9 @@ module.exports = function (passport) {
                 callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://closekart.onrender.com/api/auth/google/callback",
             },
             async (accessToken, refreshToken, profile, done) => {
+                console.log("PASSPORT CALLBACK URL BEING USED:");
+                console.log(process.env.GOOGLE_CALLBACK_URL || "https://closekart.onrender.com/api/auth/google/callback");
+
                 try {
                     console.log("Google login for:", profile.emails[0].value);
                     // Passing profile directly as requested for debugging/verification

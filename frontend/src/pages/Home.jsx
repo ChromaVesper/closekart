@@ -31,11 +31,20 @@ const Home = () => {
     }, [coords?.latitude, coords?.longitude]);
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-20 font-sans max-w-md mx-auto shadow-[0_0_15px_rgba(0,0,0,0.05)] bg-white">
-            <Header />
-            <SearchBar />
-            <CategoryScroll />
-            <BannerSlider />
+        <div className="bg-white min-h-screen font-sans">
+            {/* Header and MobileNav are now handled by MainLayout in App.jsx */}
+            <div className="md:hidden">
+                <SearchBar />
+                <CategoryScroll />
+                <BannerSlider />
+            </div>
+
+            <div className="hidden md:block mb-8">
+                <BannerSlider />
+                <div className="mt-8">
+                    <CategoryScroll />
+                </div>
+            </div>
 
             <div className="mt-6 px-4">
                 <div className="flex items-center justify-between mb-3">
@@ -43,14 +52,14 @@ const Home = () => {
                 </div>
 
                 {prodLoading ? (
-                    <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 snap-x">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="w-36 h-48 bg-gray-100 rounded-lg animate-pulse flex-shrink-0 snap-start" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="w-full h-48 bg-gray-50 rounded-xl animate-pulse" />
                         ))}
                     </div>
                 ) : products.length > 0 ? (
-                    <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 -mx-4 px-4 snap-x">
-                        {products.slice(0, 10).map((product) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {products.map((product) => (
                             <ProductCard key={product._id} product={product} />
                         ))}
                     </div>
@@ -60,9 +69,6 @@ const Home = () => {
                     </div>
                 )}
             </div>
-
-            {/* Spacer for bottom nav */}
-            <div className="h-10"></div>
         </div>
     );
 };

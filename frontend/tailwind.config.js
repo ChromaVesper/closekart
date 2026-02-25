@@ -7,8 +7,14 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: '#2563EB', // Blue 600
-                secondary: '#F3F4F6', // Gray 100
+                brand: {
+                    primary: '#2563EB',
+                    secondary: '#06B6D4',
+                    bg: '#F8FAFC'
+                }
+            },
+            fontFamily: {
+                sans: ['Inter', 'sans-serif'],
             }
         },
     },

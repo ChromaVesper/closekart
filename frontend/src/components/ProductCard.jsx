@@ -9,8 +9,8 @@ const ProductCard = ({ product }) => {
     const shopName = shop?.shopName || "Unknown Shop";
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden flex flex-col w-36 sm:w-40 flex-shrink-0 snap-start">
-            <div className="h-36 bg-gray-100 relative">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col w-full hover:shadow-md transition">
+            <div className="h-40 bg-gray-50 relative">
                 {image ? (
                     <img src={image} alt={name} className="w-full h-full object-cover" />
                 ) : (

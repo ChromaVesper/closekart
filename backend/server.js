@@ -95,5 +95,9 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log("Server running on port:", PORT);
-    console.log("ACTIVE GOOGLE CALLBACK URL:", process.env.GOOGLE_CALLBACK_URL);
+    console.log(
+        "ACTIVE GOOGLE CALLBACK URL:",
+        process.env.GOOGLE_CALLBACK_URL ||
+        "https://closekart.onrender.com/api/auth/google/callback"
+    );
 });

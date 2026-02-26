@@ -1,0 +1,1 @@
+import{u as a,m as o,r as n,j as r}from"./index-1TJcLd-J.js";function i(){const e=a(),[s]=o();return n.useEffect(()=>{const t=s.get("token");t?(localStorage.setItem("token",t),e("/")):e("/login")},[]),r.jsx("div",{children:"Logging you in..."})}export{i as default};

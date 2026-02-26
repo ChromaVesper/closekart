@@ -52,8 +52,12 @@ app.use(passport.session());
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connected successfully'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .then(() => {
+        console.log("MongoDB Connected Successfully");
+    })
+    .catch(err => {
+        console.error("MongoDB connection error:", err);
+    });
 
 // Connect App Routes
 app.use('/api/auth', authRoutes);
@@ -87,6 +91,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log("Server running on port:", PORT);
+    console.log("Server running on port", PORT);
     console.log("Google OAuth Ready:", process.env.GOOGLE_CALLBACK_URL);
 });

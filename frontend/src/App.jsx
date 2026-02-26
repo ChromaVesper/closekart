@@ -34,6 +34,7 @@ const Pricing = React.lazy(() => import('./pages/Pricing'));
 const About = React.lazy(() => import('./pages/About'));
 const Play = React.lazy(() => import('./pages/Play'));
 const SellerUploadShort = React.lazy(() => import('./pages/SellerUploadShort'));
+const Wishlist = React.lazy(() => import('./pages/Wishlist'));
 
 // SwapKeeper Lazy Loaded Pages
 const SwapKeeperLayout = React.lazy(() => import('./pages/swapkeeper/SwapKeeperLayout'));
@@ -80,6 +81,7 @@ function App() {
                                     <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
                                     <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
                                     <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                                    <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
                                     <Route path="/shop-dashboard" element={<ProtectedRoute><ShopDashboard /></ProtectedRoute>} />
                                     <Route path="/seller/upload-short" element={<ProtectedRoute><SellerUploadShort /></ProtectedRoute>} />
                                     <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

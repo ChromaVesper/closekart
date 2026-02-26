@@ -3,11 +3,33 @@ import { Search, User, MapPin, ChevronDown } from 'lucide-react';
 import { useUserLocation } from '../context/LocationContext';
 import { useAddress } from '../context/AddressContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { LogOut, Heart, ShoppingBag, Store } from 'lucide-react';
 
 const Header = () => {
     const { locationName } = useUserLocation();
     const { selectedAddress } = useAddress();
+    const { user, logout } = useAuth();
+    const [profileOpen, setProfileOpen] = React.useState(false);
+    const dropdownRef = React.useRef(null);
     const navigate = useNavigate();
+
+    // Close dropdown on outside click
+    React.useEffect(() => {
+        const handler = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setProfileOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const handleLogout = () => {
+        logout();
+        setProfileOpen(false);
+        navigate('/');
+    };
 
     // Prefer selected address label, else GPS name, else fallback
     let displayName = "Mithapur";
@@ -61,10 +83,65 @@ const Header = () => {
                         <Search size={22} className="text-gray-700" />
                     </button>
 
-                    <Link to="/profile" className="p-2 sm:px-4 sm:py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-primary rounded-xl transition flex items-center gap-2 font-medium shadow-sm">
-                        <User size={18} />
-                        <span className="hidden sm:block text-sm">Account</span>
-                    </Link>
+                    {/* Profile Dropdown */}
+                    {user ? (
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setProfileOpen(!profileOpen)}
+                                className="flex items-center space-x-2 px-2 py-1.5 sm:px-3 sm:py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-blue-200">
+                                    {user.avatar ?
+                                        <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" /> :
+                                        <User size={16} className="text-blue-600" />
+                                    }
+                                </div>
+                                <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[100px] truncate">
+                                    {user.name || 'User'}
+                                </span>
+                                <ChevronDown size={14} className={`hidden sm:block text-gray-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {profileOpen && (
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 py-2 z-[100]">
+                                    <div className="px-4 py-3 border-b border-gray-100">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{user.name || 'User'}</p>
+                                        <p className="text-xs text-gray-500 truncate">{user.email || user.phone || ''}</p>
+                                    </div>
+
+                                    {(user.role === 'swap_keeper' || user.role === 'shopkeeper') && (
+                                        <Link to="/swapkeeper/dashboard" onClick={() => setProfileOpen(false)}
+                                            className="flex items-center space-x-3 px-4 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 transition">
+                                            <Store size={16} /><span>SwapKeeper Dashboard</span>
+                                        </Link>
+                                    )}
+                                    <Link to="/profile" onClick={() => setProfileOpen(false)}
+                                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-primary/5 hover:text-brand-primary transition">
+                                        <User size={16} /><span>Profile</span>
+                                    </Link>
+                                    <Link to="/orders" onClick={() => setProfileOpen(false)}
+                                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-primary/5 hover:text-brand-primary transition">
+                                        <ShoppingBag size={16} /><span>Orders</span>
+                                    </Link>
+                                    <Link to="/wishlist" onClick={() => setProfileOpen(false)}
+                                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-primary/5 hover:text-brand-primary transition">
+                                        <Heart size={16} /><span>Wishlist</span>
+                                    </Link>
+                                    <div className="border-t border-gray-100 mt-1 pt-1">
+                                        <button onClick={handleLogout}
+                                            className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full text-left font-medium">
+                                            <LogOut size={16} /><span>Logout</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Link to="/login" className="p-2 sm:px-4 sm:py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-primary rounded-xl transition flex items-center gap-2 font-medium shadow-sm">
+                            <User size={18} />
+                            <span className="hidden sm:block text-sm">Account</span>
+                        </Link>
+                    )}
                 </div>
             </div>
 

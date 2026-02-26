@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './Header';
 import MobileNav from './MobileNav';
 import DesktopSidebar from './DesktopSidebar';
+import Footer from './Footer';
 import { Outlet } from 'react-router-dom';
 
 const MainLayout = ({ children }) => {
@@ -28,6 +29,9 @@ const MainLayout = ({ children }) => {
 
             {/* Mobile Bottom Navigation */}
             <MobileNav />
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

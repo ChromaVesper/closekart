@@ -7,7 +7,7 @@ import { useAddress } from '../context/AddressContext';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import CategoryScroll from '../components/CategoryScroll';
-import BannerSlider from '../components/BannerSlider';
+import HeroCarousel from '../components/HeroCarousel';
 import ProductCard from '../components/ProductCard';
 
 const Home = () => {
@@ -36,11 +36,11 @@ const Home = () => {
             <div className="md:hidden">
                 <SearchBar />
                 <CategoryScroll />
-                <BannerSlider />
+                <HeroCarousel />
             </div>
 
             <div className="hidden md:block mb-8">
-                <BannerSlider />
+                <HeroCarousel />
                 <div className="mt-8">
                     <CategoryScroll />
                 </div>

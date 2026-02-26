@@ -7,9 +7,10 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
+        const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
 
+        // Check token first if it exists
         if (token) {
-            const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
             fetch(`${API}/profile/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -25,6 +26,19 @@ export const AuthProvider = ({ children }) => {
                     setUser(null);
                 });
         }
+
+        // Auth check for session cookies (Google Login)
+        fetch("https://closekart.onrender.com/api/auth/me", {
+            credentials: "include"
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data._id) {
+                    setUser(data);
+                }
+            })
+            .catch(err => console.error("Session check failed", err));
+
     }, []);
 
     // Also support manual inject for login pages directly

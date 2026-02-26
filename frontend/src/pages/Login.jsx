@@ -22,7 +22,8 @@ const Login = () => {
             window.recaptchaVerifier = new RecaptchaVerifier(
                 "recaptcha-container",
                 {
-                    size: "invisible"
+                    size: "invisible",
+                    callback: () => { }
                 },
                 auth
             );

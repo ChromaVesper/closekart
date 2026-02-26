@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../firebase";
 
 const Login = () => {
     const [activeTab, setActiveTab] = useState('email');
@@ -14,6 +16,14 @@ const Login = () => {
     const navigate = useNavigate();
     const { loginStore } = useAuth();
     const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
+
+    useEffect(() => {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+                size: "invisible"
+            });
+        }
+    }, []);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -36,18 +46,24 @@ const Login = () => {
 
     // Send OTP
     const sendOtp = async () => {
+        setErrorMsg('');
+        if (!phone || phone.length < 10) {
+            setErrorMsg('Enter a valid phone number with country code (e.g. +91...)');
+            return;
+        }
         setLoading(true);
-        await fetch(
-            "https://closekart.onrender.com/api/auth/send-otp",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ phone })
-            }
-        );
-        setOtpSent(true);
+        try {
+            const confirmationResult = await signInWithPhoneNumber(
+                auth,
+                phone,
+                window.recaptchaVerifier
+            );
+            window.confirmationResult = confirmationResult;
+            setOtpSent(true);
+        } catch (error) {
+            console.error("Firebase sendOtp error:", error);
+            setErrorMsg('Failed to send OTP. ' + error.message);
+        }
         setLoading(false);
     };
 
@@ -55,23 +71,29 @@ const Login = () => {
     const verifyOtp = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const res = await fetch(
-            "https://closekart.onrender.com/api/auth/verify-otp",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ phone, otp })
-            }
-        );
+        setErrorMsg('');
+        try {
+            const result = await window.confirmationResult.confirm(otp);
+            const user = result.user;
 
-        if (res.ok) {
-            const data = await res.json();
-            localStorage.setItem("token", data.token);
-            window.location.href = "/closekart/";
-        } else {
-            setErrorMsg("Verification failed");
+            // Backend registration
+            const res = await fetch("https://closekart.onrender.com/api/auth/firebase-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone: user.phoneNumber, uid: user.uid })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                loginStore(data.token, data.user);
+                window.location.href = "/closekart/";
+            } else {
+                const d = await res.json();
+                setErrorMsg(d.msg || "Backend sync failed");
+            }
+        } catch (error) {
+            console.error("Firebase verifyOtp error:", error);
+            setErrorMsg('Invalid OTP. ' + error.message);
         }
         setLoading(false);
     };
@@ -86,6 +108,9 @@ const Login = () => {
         <div className="min-h-[80vh] flex items-center justify-center">
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
                 <h2 className="text-3xl font-bold text-center mb-6 text-blue-900">Welcome Back</h2>
+
+                {/* Recaptcha Container for Firebase */}
+                <div id="recaptcha-container"></div>
 
                 {/* Auth Tabs */}
                 <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-6">

@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String },
     avatar: { type: String },
     googleId: { type: String },
+    firebaseUid: { type: String },
     provider: { type: String, default: "local" },
     role: { type: String, enum: ["customer", "shopkeeper", "swap_keeper", "admin"], default: "customer" },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],

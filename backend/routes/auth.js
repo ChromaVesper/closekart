@@ -51,70 +51,20 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// ==================== PHONE OTP AUTH ====================
+// ==================== FIREBASE PHONE AUTH ====================
 
-router.post("/send-otp", async (req, res) => {
+router.post("/firebase-login", async (req, res) => {
     try {
-        const { phone } = req.body;
-
-        const otp = otpGenerator.generate(6, {
-            upperCase: false,
-            specialChars: false,
-            lowerCaseAlphabets: false,
-            upperCaseAlphabets: false
-        });
-
-        await Otp.create({
-            phone,
-            otp,
-            expiresAt: Date.now() + 5 * 60 * 1000
-        });
-
-        // Twilio Integration
-        if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-            try {
-                const twilio = require("twilio");
-                const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-                await client.messages.create({
-                    body: `Your CloseKart verification code is: ${otp}`,
-                    from: process.env.TWILIO_PHONE_NUMBER,
-                    to: phone
-                });
-                console.log(`OTP sent to ${phone} via Twilio`);
-            } catch (twilioErr) {
-                console.error("Twilio SMS send error:", twilioErr.message);
-                console.log("Fallback OTP log:", otp);
-            }
-        } else {
-            console.log("OTP:", otp);
-        }
-
-        res.json({
-            success: true,
-            message: "OTP sent"
-        });
-    } catch (err) {
-        console.error("OTP Error:", err);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-router.post("/verify-otp", async (req, res) => {
-    try {
-        const { phone, otp } = req.body;
-
-        const record = await Otp.findOne({ phone, otp });
-
-        if (!record)
-            return res.status(400).json({ message: "Invalid OTP" });
-
-        if (record.expiresAt < Date.now())
-            return res.status(400).json({ message: "OTP expired" });
+        const { phone, uid } = req.body;
 
         let user = await User.findOne({ phone });
 
         if (!user) {
-            user = await User.create({ phone });
+            user = await User.create({
+                phone,
+                firebaseUid: uid,
+                provider: "firebase"
+            });
         }
 
         const token = jwt.sign(
@@ -123,14 +73,10 @@ router.post("/verify-otp", async (req, res) => {
             { expiresIn: "30d" }
         );
 
-        res.json({
-            success: true,
-            token,
-            user
-        });
+        res.json({ token, user });
     } catch (err) {
-        console.error("Verify OTP Error:", err);
-        res.status(500).json({ message: "Server error" });
+        console.error("Firebase Login Error:", err.message);
+        res.status(500).json({ msg: "Server error during Firebase login" });
     }
 });
 

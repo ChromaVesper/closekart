@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
-import { signInWithPhoneNumber } from "firebase/auth";
-import { auth, setupRecaptcha } from "../firebase";
+import { auth } from "../firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 const Login = () => {
     const [activeTab, setActiveTab] = useState('email');
@@ -16,6 +16,18 @@ const Login = () => {
     const navigate = useNavigate();
     const { loginStore } = useAuth();
     const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
+
+    useEffect(() => {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(
+                "recaptcha-container",
+                {
+                    size: "invisible"
+                },
+                auth
+            );
+        }
+    }, []);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -38,40 +50,32 @@ const Login = () => {
 
     // Send OTP
     const sendOTP = async () => {
-        try {
-            setupRecaptcha();
 
-            const confirmationResult = await signInWithPhoneNumber(
-                auth,
-                phone, // Uses the phone state bound to the input
-                window.recaptchaVerifier
-            );
+        const phoneNumber = "+91" + phone;
 
-            window.confirmationResult = confirmationResult;
+        const appVerifier = window.recaptchaVerifier;
 
-            alert("OTP sent successfully");
+        const confirmationResult =
+            await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
 
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
-        }
+        window.confirmationResult = confirmationResult;
+
+        alert("OTP sent successfully");
+
     };
 
     // Verify OTP
-    const verifyOTP = async (e) => {
-        if (e) e.preventDefault();
-        try {
-            const result = await window.confirmationResult.confirm(otp);
+    const verifyOTP = async () => {
 
-            const user = result.user;
+        const result =
+            await window.confirmationResult.confirm(otp);
 
-            localStorage.setItem("user", JSON.stringify(user));
+        const user = result.user;
 
-            window.location.href = "/";
+        localStorage.setItem("user", JSON.stringify(user));
 
-        } catch (error) {
-            alert("Invalid OTP");
-        }
+        window.location.href = "/profile";
+
     };
 
     const tabs = [

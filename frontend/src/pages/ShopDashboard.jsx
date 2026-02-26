@@ -81,7 +81,7 @@ const ShopDashboard = () => {
                 </nav>
                 <div className="p-4 border-t border-gray-100">
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/', { replace: false })}
                         className="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm gap-3"
                     >
                         <LogOut size={18} /> Back to Site

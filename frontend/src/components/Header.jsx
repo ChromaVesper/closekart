@@ -28,7 +28,7 @@ const Header = () => {
     const handleLogout = () => {
         logout();
         setProfileOpen(false);
-        navigate('/');
+        navigate('/', { replace: false });
     };
 
     // Prefer selected address label, else GPS name, else fallback
@@ -49,7 +49,7 @@ const Header = () => {
                         CloseKart
                     </Link>
 
-                    <div className="hidden sm:flex flex-col cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition" onClick={() => navigate('/select-address')}>
+                    <div className="hidden sm:flex flex-col cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition" onClick={() => navigate('/select-address', { replace: false })}>
                         <div className="flex items-center gap-1 text-[10px] text-brand-primary font-bold uppercase tracking-wider">
                             <MapPin size={10} /> {selectedAddress ? selectedAddress.label : 'Delivery to'}
                         </div>
@@ -67,7 +67,7 @@ const Header = () => {
                             type="text"
                             placeholder="Search products, brands and categories..."
                             className="w-full bg-gray-50 border border-transparent hover:border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary block pl-11 pt-2.5 pb-2.5 outline-none transition-all shadow-sm"
-                            onClick={() => navigate('/search')}
+                            onClick={() => navigate('/search', { replace: false })}
                             readOnly
                         />
                         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
@@ -79,7 +79,7 @@ const Header = () => {
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3 shrink-0">
                     {/* Mobile Search Icon */}
-                    <button className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-full transition" onClick={() => navigate('/search')}>
+                    <button className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-full transition" onClick={() => navigate('/search', { replace: false })}>
                         <Search size={22} className="text-gray-700" />
                     </button>
 
@@ -146,7 +146,7 @@ const Header = () => {
             </div>
 
             {/* Mobile Location Strip (Shown under header on tiny screens) */}
-            <div className="sm:hidden px-4 py-2 border-t border-gray-100 bg-white flex justify-between items-center cursor-pointer active:bg-gray-50" onClick={() => navigate('/select-address')}>
+            <div className="sm:hidden px-4 py-2 border-t border-gray-100 bg-white flex justify-between items-center cursor-pointer active:bg-gray-50" onClick={() => navigate('/select-address', { replace: false })}>
                 <div className="flex items-center gap-1.5">
                     <div className="bg-brand-primary/10 p-1 rounded-full">
                         <MapPin size={12} className="text-brand-primary" />

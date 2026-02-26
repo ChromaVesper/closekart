@@ -8,7 +8,7 @@ const SearchBar = () => {
     return (
         <div className="px-4 mt-2">
             <div
-                onClick={() => navigate('/search')}
+                onClick={() => navigate('/search', { replace: false })}
                 className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 flex items-center gap-2 shadow-sm cursor-text"
             >
                 <Search size={20} className="text-gray-400" />

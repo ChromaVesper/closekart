@@ -97,7 +97,7 @@ const Profile = () => {
                             <p className="text-gray-500 text-sm">{user.email || user.phone || ''}</p>
                         </div>
                         <button
-                            onClick={() => navigate('/edit-profile')}
+                            onClick={() => navigate('/edit-profile', { replace: false })}
                             className="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition font-medium mt-14 mr-2"
                         >
                             <Edit2 size={16} />

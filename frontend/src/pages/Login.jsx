@@ -75,7 +75,7 @@ const Login = () => {
 
         localStorage.setItem("user", JSON.stringify(user));
 
-        window.location.href = "/profile";
+        navigate("/profile", { replace: false });
 
     };
 

@@ -35,51 +35,43 @@ const Login = () => {
     };
 
     // Send OTP
-    const handleSendOTP = async () => {
-        setErrorMsg('');
-        if (!phone || phone.length < 10) {
-            setErrorMsg('Enter a valid phone number');
-            return;
-        }
+    const sendOtp = async () => {
         setLoading(true);
-        try {
-            const res = await fetch(`${API}/auth/send-otp`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+        await fetch(
+            "https://closekart.onrender.com/api/auth/send-otp",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({ phone })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setOtpSent(true);
-            } else {
-                setErrorMsg(data.msg || 'Failed to send OTP');
             }
-        } catch {
-            setErrorMsg('Failed to send OTP');
-        }
+        );
+        setOtpSent(true);
         setLoading(false);
     };
 
     // Verify OTP
-    const handleVerifyOTP = async (e) => {
+    const verifyOtp = async (e) => {
         e.preventDefault();
-        setErrorMsg('');
         setLoading(true);
-        try {
-            const res = await fetch(`${API}/auth/verify-otp`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(
+            "https://closekart.onrender.com/api/auth/verify-otp",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({ phone, otp })
-            });
-            const data = await res.json();
-            if (res.ok && data.token) {
-                loginStore(data.token, data.user);
-                navigate('/');
-            } else {
-                setErrorMsg(data.msg || 'Invalid OTP');
             }
-        } catch {
-            setErrorMsg('OTP verification failed');
+        );
+
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem("token", data.token);
+            window.location.href = "/closekart/";
+        } else {
+            setErrorMsg("Verification failed");
         }
         setLoading(false);
     };
@@ -169,7 +161,7 @@ const Login = () => {
                                     />
                                 </div>
                                 <button
-                                    onClick={handleSendOTP}
+                                    onClick={sendOtp}
                                     disabled={loading}
                                     className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition transform active:scale-95 disabled:opacity-50"
                                 >
@@ -177,7 +169,7 @@ const Login = () => {
                                 </button>
                             </>
                         ) : (
-                            <form onSubmit={handleVerifyOTP} className="space-y-5">
+                            <form onSubmit={verifyOtp} className="space-y-5">
                                 <div>
                                     <label className="block text-gray-700 text-sm font-bold mb-2">Enter OTP sent to {phone}</label>
                                     <input

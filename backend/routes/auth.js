@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Otp = require("../models/Otp");
+const otpGenerator = require("otp-generator");
 const generateToken = require("../utils/generateToken");
 const { generateOTP, sendOTP } = require("../utils/sendOTP");
 const bcrypt = require("bcryptjs");
@@ -51,56 +53,84 @@ router.post("/login", async (req, res) => {
 
 // ==================== PHONE OTP AUTH ====================
 
-// POST /api/auth/send-otp
 router.post("/send-otp", async (req, res) => {
     try {
         const { phone } = req.body;
-        if (!phone) return res.status(400).json({ msg: "Phone number is required" });
 
-        // Delete any existing OTPs for this phone
-        await Otp.deleteMany({ phone });
+        const otp = otpGenerator.generate(6, {
+            upperCase: false,
+            specialChars: false,
+            lowerCaseAlphabets: false,
+            upperCaseAlphabets: false
+        });
 
-        // Generate and save OTP
-        const otp = generateOTP();
         await Otp.create({
             phone,
             otp,
-            expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+            expiresAt: Date.now() + 5 * 60 * 1000
         });
 
-        // Send OTP
-        await sendOTP(phone, otp);
+        // Twilio Integration
+        if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
+            try {
+                const twilio = require("twilio");
+                const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+                await client.messages.create({
+                    body: `Your CloseKart verification code is: ${otp}`,
+                    from: process.env.TWILIO_PHONE_NUMBER,
+                    to: phone
+                });
+                console.log(`OTP sent to ${phone} via Twilio`);
+            } catch (twilioErr) {
+                console.error("Twilio SMS send error:", twilioErr.message);
+                console.log("Fallback OTP log:", otp);
+            }
+        } else {
+            console.log("OTP:", otp);
+        }
 
-        res.json({ msg: "OTP sent successfully" });
+        res.json({
+            success: true,
+            message: "OTP sent"
+        });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ msg: "Failed to send OTP" });
+        console.error("OTP Error:", err);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
-// POST /api/auth/verify-otp
 router.post("/verify-otp", async (req, res) => {
     try {
         const { phone, otp } = req.body;
-        if (!phone || !otp) return res.status(400).json({ msg: "Phone and OTP are required" });
 
-        const otpRecord = await Otp.findOne({ phone, otp, expiresAt: { $gt: new Date() } });
-        if (!otpRecord) return res.status(400).json({ msg: "Invalid or expired OTP" });
+        const record = await Otp.findOne({ phone, otp });
 
-        // Delete used OTP
-        await Otp.deleteMany({ phone });
+        if (!record)
+            return res.status(400).json({ message: "Invalid OTP" });
 
-        // Find or create user
+        if (record.expiresAt < Date.now())
+            return res.status(400).json({ message: "OTP expired" });
+
         let user = await User.findOne({ phone });
+
         if (!user) {
-            user = await User.create({ phone, provider: "phone" });
+            user = await User.create({ phone });
         }
 
-        const token = generateToken(user.id);
-        res.json({ token, user: { id: user.id, name: user.name, phone: user.phone } });
+        const token = jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "30d" }
+        );
+
+        res.json({
+            success: true,
+            token,
+            user
+        });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ msg: "OTP verification failed" });
+        console.error("Verify OTP Error:", err);
+        res.status(500).json({ message: "Server error" });
     }
 });
 

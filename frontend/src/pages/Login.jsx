@@ -37,57 +37,41 @@ const Login = () => {
     };
 
     // Send OTP
-    const sendOtp = async () => {
-        setErrorMsg('');
-        if (!phone || phone.length < 10) {
-            setErrorMsg('Enter a valid phone number with country code (e.g. +91...)');
-            return;
-        }
-        setLoading(true);
+    const sendOTP = async () => {
         try {
+            setupRecaptcha();
+
             const confirmationResult = await signInWithPhoneNumber(
                 auth,
-                phone,
+                phone, // Uses the phone state bound to the input
                 window.recaptchaVerifier
             );
+
             window.confirmationResult = confirmationResult;
-            setOtpSent(true);
+
+            alert("OTP sent successfully");
+
         } catch (error) {
-            console.error("Firebase sendOtp error:", error);
-            setErrorMsg('Failed to send OTP. ' + error.message);
+            console.error(error);
+            alert(error.message);
         }
-        setLoading(false);
     };
 
     // Verify OTP
-    const verifyOtp = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setErrorMsg('');
+    const verifyOTP = async (e) => {
+        if (e) e.preventDefault();
         try {
             const result = await window.confirmationResult.confirm(otp);
+
             const user = result.user;
 
-            // Backend registration
-            const res = await fetch("https://closekart.onrender.com/api/auth/firebase-login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone: user.phoneNumber, uid: user.uid })
-            });
+            localStorage.setItem("user", JSON.stringify(user));
 
-            if (res.ok) {
-                const data = await res.json();
-                loginStore(data.token, data.user);
-                window.location.href = "/closekart/";
-            } else {
-                const d = await res.json();
-                setErrorMsg(d.msg || "Backend sync failed");
-            }
+            window.location.href = "/";
+
         } catch (error) {
-            console.error("Firebase verifyOtp error:", error);
-            setErrorMsg('Invalid OTP. ' + error.message);
+            alert("Invalid OTP");
         }
-        setLoading(false);
     };
 
     const tabs = [
@@ -186,7 +170,7 @@ const Login = () => {
                                 </button>
                             </>
                         ) : (
-                            <form onSubmit={verifyOTP} className="space-y-5">
+                            <form onSubmit={(e) => { e.preventDefault(); verifyOTP(); }} className="space-y-5">
                                 <div>
                                     <label className="block text-gray-700 text-sm font-bold mb-2">Enter OTP sent to {phone}</label>
                                     <input

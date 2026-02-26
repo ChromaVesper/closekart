@@ -18,50 +18,50 @@ const Footer = () => {
                         </p>
                     </div>
 
-                    {/* For Customers */}
+                    {/* Links Column 1 */}
                     <div>
-                        <h4 className="font-semibold mb-4 text-gray-200">For Customers</h4>
+                        <h4 className="font-semibold mb-4 text-gray-200">CloseKart</h4>
                         <ul className="space-y-2 text-sm text-gray-400">
                             <li>
-                                <Link to="/search" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    Search Products
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/shops" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    Nearby Shops
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/orders" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    Track Order
-                                </Link>
-                            </li>
-                            <li>
                                 <Link to="/about" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    About
+                                    About CloseKart
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/developers" className="hover:text-white hover:underline transition-colors cursor-pointer">
+                                    Developers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/swapkeeper/dashboard" className="hover:text-white hover:underline transition-colors cursor-pointer">
+                                    SwapKeeper Dashboard
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/contact" className="hover:text-white hover:underline transition-colors cursor-pointer">
+                                    Contact
                                 </Link>
                             </li>
                         </ul>
                     </div>
 
-                    {/* For Shopkeepers */}
+                    {/* Links Column 2 */}
                     <div>
-                        <h4 className="font-semibold mb-4 text-gray-200">For Shopkeepers</h4>
+                        <h4 className="font-semibold mb-4 text-gray-200">Legal & Help</h4>
                         <ul className="space-y-2 text-sm text-gray-400">
                             <li>
-                                <Link to="/register-shop" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    Register Shop
+                                <Link to="/privacy" className="hover:text-white hover:underline transition-colors cursor-pointer">
+                                    Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/swapkeeper/dashboard" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    Shop Dashboard
+                                <Link to="/terms" className="hover:text-white hover:underline transition-colors cursor-pointer">
+                                    Terms
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/pricing" className="hover:text-white hover:underline transition-colors cursor-pointer">
-                                    Pricing
+                                <Link to="/help" className="hover:text-white hover:underline transition-colors cursor-pointer">
+                                    Help Center
                                 </Link>
                             </li>
                         </ul>

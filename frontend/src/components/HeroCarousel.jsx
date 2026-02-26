@@ -1,66 +1,77 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const slides = [
     {
-        id: 1,
         title: "Discover What's Closest, Fastest, & Best",
-        subtitle: "Your neighborhood marketplace at your fingertips.",
+        subtitle: "Compare prices, check real-time stock, and find delivery options nearby.",
+        button1: "Find Products",
+        button2: "Explore Shops",
+        image: "/assets/banner1.png"
     },
     {
-        id: 2,
-        title: "Compare prices from nearby shops",
-        subtitle: "Find the best deals without leaving your home.",
+        title: "Support Local SwapKeepers",
+        subtitle: "Connect with nearby sellers instantly.",
+        image: "/assets/banner2.png"
     },
     {
-        id: 3,
-        title: "Support your local SwapKeepers",
-        subtitle: "Empower your community with every purchase.",
+        title: "Fast, Reliable, and Local",
+        subtitle: "Everything near you in seconds.",
+        image: "/assets/banner3.png"
     }
 ];
 
-const HeroCarousel = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
+export default function HeroCarousel() {
+    const [current, setCurrent] = useState(0);
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
+        const interval = setInterval(() => {
+            setCurrent(prev => (prev + 1) % slides.length);
         }, 4000);
-        return () => clearInterval(timer);
+
+        return () => clearInterval(interval);
     }, []);
 
     return (
-        <div className="relative w-full h-[30vh] sm:h-[40vh] md:h-[50vh] overflow-hidden bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500">
-            {/* Slides container */}
-            <div
-                className="flex w-full h-full transition-transform duration-1000 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-                {slides.map((slide) => (
-                    <div key={slide.id} className="w-full h-full shrink-0 flex flex-col items-center justify-center px-4 text-center">
-                        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-4 drop-shadow-lg tracking-tight">
-                            {slide.title}
-                        </h1>
-                        <p className="text-sm sm:text-lg md:text-xl text-blue-100 font-medium max-w-2xl drop-shadow-md">
-                            {slide.subtitle}
-                        </p>
-                    </div>
-                ))}
-            </div>
+        <div className="w-full h-[320px] md:h-[420px] relative overflow-hidden rounded-xl">
+            {slides.map((slide, index) => (
+                <div
+                    key={index}
+                    className={`absolute w-full h-full transition-all duration-700 ${index === current
+                            ? "opacity-100 translate-x-0"
+                            : "opacity-0 translate-x-full"
+                        }`}
+                >
+                    <div className="bg-gradient-to-r from-blue-700 to-blue-500 h-full flex flex-col justify-center px-8 text-white relative">
 
-            {/* Dots */}
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-                {slides.map((_, idx) => (
-                    <button
-                        key={idx}
-                        onClick={() => setCurrentSlide(idx)}
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentSlide === idx ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
-                            }`}
-                        aria-label={`Go to slide ${idx + 1}`}
-                    />
-                ))}
-            </div>
+                        {/* If images exist, they would render here as backgrounds or layered elements */}
+                        {/* <img src={slide.image} className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-20" alt="" /> */}
+
+                        <div className="relative z-10">
+                            <h1 className="text-3xl md:text-5xl font-bold">
+                                {slide.title}
+                            </h1>
+
+                            <p className="mt-3 text-lg">
+                                {slide.subtitle}
+                            </p>
+
+                            {slide.button1 && (
+                                <div className="mt-6 flex flex-wrap gap-4">
+                                    <button className="bg-white text-blue-700 px-6 py-2.5 rounded-lg font-bold hover:bg-gray-100 transition shadow">
+                                        {slide.button1}
+                                    </button>
+                                    {slide.button2 && (
+                                        <button className="bg-blue-600 text-white border border-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-800 transition shadow">
+                                            {slide.button2}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+                </div>
+            ))}
         </div>
     );
-};
-
-export default HeroCarousel;
+}

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import SwapKeeperRoute from './components/SwapKeeperRoute';
@@ -56,60 +56,58 @@ function App() {
     }
 
     return (
-        <Router basename="/closekart">
-            <Suspense fallback={<PageLoader />}>
-                <Routes>
-                    {/* ── SwapKeeper Dashboard ── */}
-                    <Route path="/swapkeeper" element={
-                        <SwapKeeperRoute>
-                            <SwapKeeperLayout />
-                        </SwapKeeperRoute>
-                    }>
-                        <Route path="dashboard" element={<SwapKeeperDashboard />} />
-                        <Route path="items" element={<SwapKeeperItems />} />
-                        <Route path="orders" element={<SwapKeeperOrders />} />
-                        <Route path="profile" element={<SwapKeeperProfile />} />
-                    </Route>
+        <Suspense fallback={<PageLoader />}>
+            <Routes>
+                {/* ── SwapKeeper Dashboard ── */}
+                <Route path="/swapkeeper" element={
+                    <SwapKeeperRoute>
+                        <SwapKeeperLayout />
+                    </SwapKeeperRoute>
+                }>
+                    <Route path="dashboard" element={<SwapKeeperDashboard />} />
+                    <Route path="items" element={<SwapKeeperItems />} />
+                    <Route path="orders" element={<SwapKeeperOrders />} />
+                    <Route path="profile" element={<SwapKeeperProfile />} />
+                </Route>
 
-                    {/* ── Main Site (Responsive Cross-Platform Layout) ── */}
-                    <Route path="/*" element={
-                        <MainLayout>
-                            <Suspense fallback={<PageLoader />}>
-                                <Routes>
-                                    <Route path="/" element={<Home />} />
-                                    <Route path="/search" element={<Search />} />
-                                    <Route path="/shop/:id" element={<ShopDetails />} />
-                                    <Route path="/login" element={<Login />} />
-                                    <Route path="/register" element={<Register />} />
-                                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                                    <Route path="/reset-password/:token" element={<ResetPassword />} />
-                                    <Route path="/auth-success" element={<AuthSuccess />} />
-                                    <Route path="/oauth-success" element={<OAuthSuccess />} />
-                                    <Route path="/play" element={<Play />} />
+                {/* ── Main Site (Responsive Cross-Platform Layout) ── */}
+                <Route path="/*" element={
+                    <MainLayout>
+                        <Suspense fallback={<PageLoader />}>
+                            <Routes>
+                                <Route path="/" element={<Home />} />
+                                <Route path="/search" element={<Search />} />
+                                <Route path="/shop/:id" element={<ShopDetails />} />
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/register" element={<Register />} />
+                                <Route path="/forgot-password" element={<ForgotPassword />} />
+                                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                                <Route path="/auth-success" element={<AuthSuccess />} />
+                                <Route path="/oauth-success" element={<OAuthSuccess />} />
+                                <Route path="/play" element={<Play />} />
 
-                                    {/* Protected Routes */}
-                                    <Route path="/profile" element={user ? <Profile /> : <Login />} />
-                                    <Route path="/edit-profile" element={user ? <EditProfile /> : <Login />} />
-                                    <Route path="/cart" element={user ? <Cart /> : <Login />} />
-                                    <Route path="/orders" element={user ? <Orders /> : <Login />} />
-                                    <Route path="/wishlist" element={user ? <Wishlist /> : <Login />} />
-                                    <Route path="/shop-dashboard" element={user ? <ShopDashboard /> : <Login />} />
-                                    <Route path="/seller/upload-short" element={user ? <SellerUploadShort /> : <Login />} />
-                                    <Route path="/admin" element={user ? <AdminDashboard /> : <Login />} />
+                                {/* Protected Routes */}
+                                <Route path="/profile" element={user ? <Profile /> : <Login />} />
+                                <Route path="/edit-profile" element={user ? <EditProfile /> : <Login />} />
+                                <Route path="/cart" element={user ? <Cart /> : <Login />} />
+                                <Route path="/orders" element={user ? <Orders /> : <Login />} />
+                                <Route path="/wishlist" element={user ? <Wishlist /> : <Login />} />
+                                <Route path="/shop-dashboard" element={user ? <ShopDashboard /> : <Login />} />
+                                <Route path="/seller/upload-short" element={user ? <SellerUploadShort /> : <Login />} />
+                                <Route path="/admin" element={user ? <AdminDashboard /> : <Login />} />
 
-                                    {/* Other Routes */}
-                                    <Route path="/select-address" element={<SelectAddressPage />} />
-                                    <Route path="/shops" element={<Shops />} />
-                                    <Route path="/register-shop" element={<RegisterShop />} />
-                                    <Route path="/pricing" element={<Pricing />} />
-                                    <Route path="/about" element={<About />} />
-                                </Routes>
-                            </Suspense>
-                        </MainLayout>
-                    } />
-                </Routes>
-            </Suspense>
-        </Router>
+                                {/* Other Routes */}
+                                <Route path="/select-address" element={<SelectAddressPage />} />
+                                <Route path="/shops" element={<Shops />} />
+                                <Route path="/register-shop" element={<RegisterShop />} />
+                                <Route path="/pricing" element={<Pricing />} />
+                                <Route path="/about" element={<About />} />
+                            </Routes>
+                        </Suspense>
+                    </MainLayout>
+                } />
+            </Routes>
+        </Suspense>
     );
 }
 

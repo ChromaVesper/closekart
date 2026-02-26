@@ -4,41 +4,31 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
-
-        // Check token first if it exists
-        if (token) {
-            fetch(`${API}/profile/me`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error("Invalid token");
-                    return res.json();
-                })
-                .then(data => setUser(data))
-                .catch(() => {
-                    localStorage.removeItem("token");
-                    setUser(null);
+        const checkAuth = async () => {
+            try {
+                const res = await fetch("https://closekart.onrender.com/api/auth/me", {
+                    credentials: "include"
                 });
-        }
 
-        // Auth check for session cookies (Google Login)
-        fetch("https://closekart.onrender.com/api/auth/me", {
-            credentials: "include"
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data && data._id) {
+                if (res.ok) {
+                    const data = await res.json();
                     setUser(data);
+                } else {
+                    setUser(null);
                 }
-            })
-            .catch(err => console.error("Session check failed", err));
+            } catch (err) {
+                console.log("Auth check failed:", err);
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
 
+        };
+
+        checkAuth();
     }, []);
 
     // Also support manual inject for login pages directly
@@ -53,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, setUser, loginStore, logout }}>
+        <AuthContext.Provider value={{ user, setUser, loginStore, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

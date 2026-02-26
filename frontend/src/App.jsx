@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import SwapKeeperRoute from './components/SwapKeeperRoute';
+import { useAuth } from './context/AuthContext';
 
 // Loading Fallback
 const PageLoader = () => (
@@ -44,6 +45,16 @@ const SwapKeeperOrders = React.lazy(() => import('./pages/swapkeeper/SwapKeeperO
 const SwapKeeperProfile = React.lazy(() => import('./pages/swapkeeper/SwapKeeperProfile'));
 
 function App() {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
+            </div>
+        );
+    }
+
     return (
         <Router basename="/closekart">
             <Suspense fallback={<PageLoader />}>
@@ -77,14 +88,14 @@ function App() {
                                     <Route path="/play" element={<Play />} />
 
                                     {/* Protected Routes */}
-                                    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                                    <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-                                    <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-                                    <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-                                    <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-                                    <Route path="/shop-dashboard" element={<ProtectedRoute><ShopDashboard /></ProtectedRoute>} />
-                                    <Route path="/seller/upload-short" element={<ProtectedRoute><SellerUploadShort /></ProtectedRoute>} />
-                                    <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                                    <Route path="/profile" element={user ? <Profile /> : <Login />} />
+                                    <Route path="/edit-profile" element={user ? <EditProfile /> : <Login />} />
+                                    <Route path="/cart" element={user ? <Cart /> : <Login />} />
+                                    <Route path="/orders" element={user ? <Orders /> : <Login />} />
+                                    <Route path="/wishlist" element={user ? <Wishlist /> : <Login />} />
+                                    <Route path="/shop-dashboard" element={user ? <ShopDashboard /> : <Login />} />
+                                    <Route path="/seller/upload-short" element={user ? <SellerUploadShort /> : <Login />} />
+                                    <Route path="/admin" element={user ? <AdminDashboard /> : <Login />} />
 
                                     {/* Other Routes */}
                                     <Route path="/select-address" element={<SelectAddressPage />} />

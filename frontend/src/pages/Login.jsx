@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { auth } from "../firebase";
+import { signInWithPhoneNumber } from "firebase/auth";
+import { auth, setupRecaptcha } from "../firebase";
 
 const Login = () => {
     const [activeTab, setActiveTab] = useState('email');
@@ -16,14 +16,6 @@ const Login = () => {
     const navigate = useNavigate();
     const { loginStore } = useAuth();
     const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
-
-    useEffect(() => {
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-                size: "invisible"
-            });
-        }
-    }, []);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -186,7 +178,7 @@ const Login = () => {
                                     />
                                 </div>
                                 <button
-                                    onClick={sendOtp}
+                                    onClick={sendOTP}
                                     disabled={loading}
                                     className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition transform active:scale-95 disabled:opacity-50"
                                 >
@@ -194,7 +186,7 @@ const Login = () => {
                                 </button>
                             </>
                         ) : (
-                            <form onSubmit={verifyOtp} className="space-y-5">
+                            <form onSubmit={verifyOTP} className="space-y-5">
                                 <div>
                                     <label className="block text-gray-700 text-sm font-bold mb-2">Enter OTP sent to {phone}</label>
                                     <input

@@ -1,1 +1,0 @@
-import{u as t,r as e}from"./index-CMn2OCfz.js";const g=()=>{const s=t(),[a,o]=e.useState({name:"",phone:""}),[n,u]=e.useState(!1),[c,l]=e.useState(!1),[f,i]=e.useState("");return e.useEffect(()=>{{s("/login");return}},[null]),null};export{g as default};

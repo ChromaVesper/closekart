@@ -1,1 +1,0 @@
-import{u as s,r as t}from"./index-CJZPd7eW.js";const E=()=>{const e=s(),[n,o]=t.useState(!1),[r,i]=t.useState({name:"",phone:""}),[u,c]=t.useState([]),[l,f]=t.useState([]),[g,S]=t.useState("profile"),[d,m]=t.useState(!1),[v,p]=t.useState(!0);return t.useEffect(()=>{{e("/login");return}},[null]),null};export{E as default};

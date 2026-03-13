@@ -423,7 +423,7 @@ export default function Login() {
                                 localStorage.setItem("loginRole", "buyer");
                                 handleGoogleLogin();
                             }}
-                            className="flex-1 flex justify-center items-center gap-2 py-3.5 px-3 border border-gray-200 rounded-2xl shadow-sm bg-white hover:bg-blue-50 hover:border-blue-200 transition-all font-bold text-gray-700 focus:ring-4 focus:ring-blue-100 group"
+                            className="flex-1 flex justify-center items-center gap-3 py-4 px-3 border border-gray-200 rounded-2xl shadow-sm bg-white hover:bg-blue-50 hover:border-blue-300 transition-all font-bold text-gray-700 focus:ring-4 focus:ring-blue-100 group active:scale-[0.98]"
                         >
                             <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -431,14 +431,14 @@ export default function Login() {
                                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                             </svg>
-                            <span className="text-sm truncate group-hover:text-blue-700 transition-colors">Login as Buyer</span>
+                            <span className="text-sm group-hover:text-blue-700 transition-colors">Continue as Buyer with Google</span>
                         </button>
                         <button
                             onClick={() => {
                                 localStorage.setItem("loginRole", "seller");
                                 handleGoogleLogin();
                             }}
-                            className="flex-1 flex justify-center items-center gap-2 py-3.5 px-3 border border-gray-200 rounded-2xl shadow-sm bg-white hover:bg-indigo-50 hover:border-indigo-200 transition-all font-bold text-gray-700 focus:ring-4 focus:ring-indigo-100 group"
+                            className="flex-1 flex justify-center items-center gap-3 py-4 px-3 border border-gray-200 rounded-2xl shadow-sm bg-white hover:bg-indigo-50 hover:border-indigo-300 transition-all font-bold text-gray-700 focus:ring-4 focus:ring-indigo-100 group active:scale-[0.98]"
                         >
                             <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -446,7 +446,7 @@ export default function Login() {
                                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                             </svg>
-                            <span className="text-sm truncate group-hover:text-indigo-700 transition-colors">Login as Seller</span>
+                            <span className="text-sm group-hover:text-indigo-700 transition-colors">Continue as Seller with Google</span>
                         </button>
                     </div>
 

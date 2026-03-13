@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const AuthSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { loginStore } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {}; const loading = false;
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);

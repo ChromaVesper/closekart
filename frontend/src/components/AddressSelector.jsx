@@ -1,7 +1,6 @@
 import React, { useState, Suspense, lazy, useCallback } from 'react';
 import { X, Loader, MapPin, Plus } from 'lucide-react';
 import { useAddress } from '../context/AddressContext';
-import { useAuth } from '../context/AuthContext';
 import AddressCard from './AddressCard';
 import AddressForm from './AddressForm';
 
@@ -20,7 +19,7 @@ const TAB_MAP = 'map';
  *   inline     – if true, no fixed overlay wrapper (embedded in page)
  */
 const AddressSelector = ({ onClose, inline = false }) => {
-    const { user } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {}; const loading = false;
     const { addressList, selectedAddress, selectAddress, addAddress, updateAddress, setDefault, deleteAddress } = useAddress();
 
     const [tab, setTab] = useState(TAB_LIST);

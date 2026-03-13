@@ -2,7 +2,6 @@ import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Package, ShoppingBag, Clock, CheckCircle, TrendingUp, ArrowUpRight, Map, LayoutGrid, SlidersHorizontal, MapPin } from 'lucide-react';
 import { getDashboard } from '../../api/swapKeeperApi';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { useUserLocation } from '../../context/LocationContext';
 import api from '../../services/api';
 
@@ -35,7 +34,7 @@ const StatCard = ({ label, value, icon: Icon, color, bg, to }) => (
 );
 
 const SwapKeeperDashboard = () => {
-    const { user } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {};
     const { coords, locationName } = useUserLocation();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);

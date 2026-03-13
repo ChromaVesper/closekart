@@ -37,8 +37,8 @@ export default function HeroCarousel() {
                 <div
                     key={index}
                     className={`absolute w-full h-full transition-all duration-700 ${index === current
-                            ? "opacity-100 translate-x-0"
-                            : "opacity-0 translate-x-full"
+                        ? "opacity-100 translate-x-0"
+                        : "opacity-0 translate-x-full"
                         }`}
                 >
                     <div className="bg-gradient-to-r from-blue-700 to-blue-500 h-full flex flex-col justify-center px-8 text-white relative">

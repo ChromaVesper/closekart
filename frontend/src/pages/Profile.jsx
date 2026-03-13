@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, ShoppingBag, Heart, LogOut, Edit2, Save } from 'lucide-react';
 import AvatarUpload from '../components/AvatarUpload';
@@ -7,7 +6,7 @@ import AvatarUpload from '../components/AvatarUpload';
 const API = import.meta.env.VITE_API_URL || 'https://closekart.onrender.com/api';
 
 const Profile = () => {
-    const { user, logout } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {};
     const navigate = useNavigate();
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState({ name: '', phone: '' });

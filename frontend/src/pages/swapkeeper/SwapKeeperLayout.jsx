@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, User, LogOut, Menu, X, Store } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
     { to: '/swapkeeper/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,7 +10,7 @@ const navItems = [
 ];
 
 const SwapKeeperLayout = () => {
-    const { logout, user } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {}; const loading = false;
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 

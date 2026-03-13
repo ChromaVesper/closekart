@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShoppingBag, Package, Clock, CheckCircle, XCircle, Loader, ChevronRight, MapPin } from 'lucide-react';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 const STATUS_CONFIG = {
@@ -23,7 +22,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const Orders = () => {
-    const { user } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {};
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

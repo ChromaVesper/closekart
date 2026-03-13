@@ -19,12 +19,14 @@ const ShopDetails = React.lazy(() => import('./pages/ShopDetails'));
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const ShopDashboard = React.lazy(() => import('./pages/ShopDashboard'));
-const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
 const Cart = React.lazy(() => import('./pages/Cart'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess'));
 const OAuthSuccess = React.lazy(() => import('./pages/OAuthSuccess'));
+const Account = React.lazy(() => import('./pages/Account'));
+const Help = React.lazy(() => import('./pages/Help'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const EditProfile = React.lazy(() => import('./pages/EditProfile'));
 const SelectAddressPage = React.lazy(() => import('./pages/SelectAddressPage'));
@@ -36,7 +38,15 @@ const About = React.lazy(() => import('./pages/About'));
 const Play = React.lazy(() => import('./pages/Play'));
 const SellerUploadShort = React.lazy(() => import('./pages/SellerUploadShort'));
 const Wishlist = React.lazy(() => import('./pages/Wishlist'));
-
+const SellerLogin = React.lazy(() => import('./pages/SellerLogin'));
+const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
+const ShopkeeperDashboard = React.lazy(() => import('./pages/ShopkeeperDashboard'));
+const BuyerDashboard = React.lazy(() => import('./pages/BuyerDashboard'));
+const SelectRole = React.lazy(() => import('./pages/SelectRole'));
+const SellerAddProduct = React.lazy(() => import('./pages/SellerAddProduct'));
+import SellerProtectedRoute from './components/SellerProtectedRoute';
+import BuyerProtectedRoute from './components/BuyerProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 // SwapKeeper Lazy Loaded Pages
 const SwapKeeperLayout = React.lazy(() => import('./pages/swapkeeper/SwapKeeperLayout'));
 const SwapKeeperDashboard = React.lazy(() => import('./pages/swapkeeper/SwapKeeperDashboard'));
@@ -45,7 +55,7 @@ const SwapKeeperOrders = React.lazy(() => import('./pages/swapkeeper/SwapKeeperO
 const SwapKeeperProfile = React.lazy(() => import('./pages/swapkeeper/SwapKeeperProfile'));
 
 function App() {
-    const { user, loading } = useAuth();
+    const { loading } = useAuth();
 
     if (loading) {
         return (
@@ -85,23 +95,31 @@ function App() {
                                 <Route path="/auth-success" element={<AuthSuccess />} />
                                 <Route path="/oauth-success" element={<OAuthSuccess />} />
                                 <Route path="/play" element={<Play />} />
-
+                                <Route path="/seller-login" element={<SellerLogin />} />
                                 {/* Protected Routes */}
-                                <Route path="/profile" element={user ? <Profile /> : <Login />} />
-                                <Route path="/edit-profile" element={user ? <EditProfile /> : <Login />} />
-                                <Route path="/cart" element={user ? <Cart /> : <Login />} />
-                                <Route path="/orders" element={user ? <Orders /> : <Login />} />
-                                <Route path="/wishlist" element={user ? <Wishlist /> : <Login />} />
-                                <Route path="/shop-dashboard" element={user ? <ShopDashboard /> : <Login />} />
-                                <Route path="/seller/upload-short" element={user ? <SellerUploadShort /> : <Login />} />
-                                <Route path="/admin" element={user ? <AdminDashboard /> : <Login />} />
+                                <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+                                <Route path="/buyer-dashboard" element={<BuyerProtectedRoute><BuyerDashboard /></BuyerProtectedRoute>} />
+                                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                                <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+                                <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+                                <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                                <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+                                <Route path="/shop-dashboard" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
+                                <Route path="/seller/upload-short" element={<ProtectedRoute><SellerUploadShort /></ProtectedRoute>} />
+                                <Route path="/seller-dashboard" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
+                                <Route path="/seller/add-product" element={<SellerProtectedRoute><SellerAddProduct /></SellerProtectedRoute>} />
+                                <Route path="/shopkeeper-dashboard" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
+                                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                                <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
                                 {/* Other Routes */}
+                                <Route path="/select-role" element={<SelectRole />} />
                                 <Route path="/select-address" element={<SelectAddressPage />} />
                                 <Route path="/shops" element={<Shops />} />
                                 <Route path="/register-shop" element={<RegisterShop />} />
                                 <Route path="/pricing" element={<Pricing />} />
                                 <Route path="/about" element={<About />} />
+                                <Route path="/help" element={<Help />} />
                             </Routes>
                         </Suspense>
                     </MainLayout>

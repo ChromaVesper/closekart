@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
 import api from '../services/api';
 
 const AddressContext = createContext();
@@ -7,7 +6,7 @@ const AddressContext = createContext();
 const LS_KEY = 'ck_selected_address';
 
 export const AddressProvider = ({ children }) => {
-    const { user } = useAuth();
+    const user = null; const logout = () => { }; const loginStore = () => { };
     const [addressList, setAddressList] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(() => {
         try { return JSON.parse(localStorage.getItem(LS_KEY)) || null; } catch { return null; }
@@ -102,8 +101,8 @@ export const AddressProvider = ({ children }) => {
     // ── Coords helper used by Home / ShopMap ──────────────────────────────────
     const activeCoords = selectedAddress
         ? {
-            latitude: selectedAddress.location.coordinates[1],
-            longitude: selectedAddress.location.coordinates[0],
+            latitude: selectedAddress?.location?.coordinates?.[1] ?? selectedAddress?.latitude ?? selectedAddress?.lat ?? null,
+            longitude: selectedAddress?.location?.coordinates?.[0] ?? selectedAddress?.longitude ?? selectedAddress?.lng ?? null,
         }
         : null;
 

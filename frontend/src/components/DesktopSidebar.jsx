@@ -1,12 +1,11 @@
 import React from 'react';
 import { Home, Compass, PlaySquare, LayoutGrid, User, ShoppingCart, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const DesktopSidebar = () => {
     const location = useLocation();
     const currentPath = location.pathname;
-    const { logout, user } = useAuth();
+    const user = null; const logout = () => {}; const loginStore = () => {}; const loading = false;
 
     const navItems = [
         { path: '/', icon: Home, label: 'Home' },

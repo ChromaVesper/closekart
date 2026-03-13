@@ -3,13 +3,15 @@ import { Search, User, MapPin, ChevronDown } from 'lucide-react';
 import { useUserLocation } from '../context/LocationContext';
 import { useAddress } from '../context/AddressContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { LogOut, Heart, ShoppingBag, Store } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Header = () => {
     const { locationName } = useUserLocation();
     const { selectedAddress } = useAddress();
-    const { user, logout } = useAuth();
+    const { user, profile } = useAuth();
     const [profileOpen, setProfileOpen] = React.useState(false);
     const dropdownRef = React.useRef(null);
     const navigate = useNavigate();
@@ -25,10 +27,15 @@ const Header = () => {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const handleLogout = () => {
-        logout();
-        setProfileOpen(false);
-        navigate('/', { replace: false });
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            localStorage.removeItem("userRole");
+            setProfileOpen(false);
+            navigate('/', { replace: true });
+        } catch (error) {
+            console.error("Logout Error:", error);
+        }
     };
 
     // Prefer selected address label, else GPS name, else fallback
@@ -88,49 +95,64 @@ const Header = () => {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setProfileOpen(!profileOpen)}
-                                className="flex items-center space-x-2 px-2 py-1.5 sm:px-3 sm:py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                                className="flex items-center space-x-2 px-2 py-1.5 sm:px-3 sm:py-2 border border-blue-200 rounded-xl hover:bg-blue-50 transition shadow-sm bg-white"
                             >
                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-blue-200">
-                                    {user.avatar ?
-                                        <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" /> :
+                                    {user.photoURL ?
+                                        <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" /> :
                                         <User size={16} className="text-blue-600" />
                                     }
                                 </div>
-                                <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[100px] truncate">
-                                    {user.name || 'User'}
-                                </span>
+                                <div className="hidden sm:flex flex-col items-start pr-1">
+                                    <span className="text-xs font-bold text-gray-900 max-w-[100px] truncate leading-tight">
+                                        {profile?.name || user.displayName || 'Account'}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider leading-tight">
+                                        {profile?.role === 'seller' ? 'Seller' : 'Buyer'}
+                                    </span>
+                                </div>
                                 <ChevronDown size={14} className={`hidden sm:block text-gray-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             {profileOpen && (
-                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 py-2 z-[100]">
-                                    <div className="px-4 py-3 border-b border-gray-100">
-                                        <p className="text-sm font-semibold text-gray-900 truncate">{user.name || 'User'}</p>
-                                        <p className="text-xs text-gray-500 truncate">{user.email || user.phone || ''}</p>
+                                <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gray-100 py-3 z-[100] transform origin-top-right transition-all animate-[fadeIn_0.2s_ease-out]">
+                                    <div className="px-5 py-3 border-b border-gray-100 mb-2">
+                                        <p className="text-sm font-black text-gray-900 truncate">{profile?.name || user.displayName || 'Welcome'}</p>
+                                        <p className="text-xs text-gray-500 font-medium truncate mt-0.5">{user.email}</p>
                                     </div>
 
-                                    {(user.role === 'swap_keeper' || user.role === 'shopkeeper') && (
-                                        <Link to="/swapkeeper/dashboard" onClick={() => setProfileOpen(false)}
-                                            className="flex items-center space-x-3 px-4 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 transition">
-                                            <Store size={16} /><span>SwapKeeper Dashboard</span>
-                                        </Link>
+                                    {profile?.role === 'seller' ? (
+                                        <>
+                                            <Link to="/seller-dashboard" onClick={() => setProfileOpen(false)}
+                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-50 transition mx-2 rounded-xl">
+                                                <Store size={18} /><span>Seller Dashboard</span>
+                                            </Link>
+                                            <Link to="/seller-dashboard" onClick={() => setProfileOpen(false)}
+                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition mx-2 rounded-xl">
+                                                <ShoppingBag size={18} /><span>Manage Orders</span>
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Link to="/buyer-dashboard" onClick={() => setProfileOpen(false)}
+                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50 transition mx-2 rounded-xl">
+                                                <User size={18} /><span>Buyer Dashboard</span>
+                                            </Link>
+                                            <Link to="/buyer-dashboard" onClick={() => setProfileOpen(false)}
+                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition mx-2 rounded-xl">
+                                                <ShoppingBag size={18} /><span>My Orders</span>
+                                            </Link>
+                                            <Link to="/buyer-dashboard" onClick={() => setProfileOpen(false)}
+                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition mx-2 rounded-xl">
+                                                <Heart size={18} /><span>My Wishlist</span>
+                                            </Link>
+                                        </>
                                     )}
-                                    <Link to="/profile" onClick={() => setProfileOpen(false)}
-                                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-primary/5 hover:text-brand-primary transition">
-                                        <User size={16} /><span>Profile</span>
-                                    </Link>
-                                    <Link to="/orders" onClick={() => setProfileOpen(false)}
-                                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-primary/5 hover:text-brand-primary transition">
-                                        <ShoppingBag size={16} /><span>Orders</span>
-                                    </Link>
-                                    <Link to="/wishlist" onClick={() => setProfileOpen(false)}
-                                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-primary/5 hover:text-brand-primary transition">
-                                        <Heart size={16} /><span>Wishlist</span>
-                                    </Link>
-                                    <div className="border-t border-gray-100 mt-1 pt-1">
+
+                                    <div className="border-t border-gray-100 mt-2 pt-2 px-2">
                                         <button onClick={handleLogout}
-                                            className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full text-left font-medium">
-                                            <LogOut size={16} /><span>Logout</span>
+                                            className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full text-left font-bold rounded-xl">
+                                            <LogOut size={18} /><span>Sign Out safely</span>
                                         </button>
                                     </div>
                                 </div>

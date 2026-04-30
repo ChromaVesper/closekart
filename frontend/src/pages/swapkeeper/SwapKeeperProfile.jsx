@@ -123,7 +123,7 @@ const SwapKeeperProfile = () => {
         try {
             const fd = new FormData();
             fd.append('file', file);
-            const res = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+            const res = await api.post('/upload/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
             const imageUrl = res.data.url || res.data.filePath || res.data.path || '';
             if (imageUrl) {
                 await api.put('/swapkeeper/profile', { shopImage: imageUrl });

@@ -115,4 +115,62 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// PATCH /api/shops/:id/toggle-status — allow seller to open/close shop
+router.patch('/:id/toggle-status', auth, async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ _id: req.params.id, owner: req.user.id });
+        if (!shop) return res.status(404).json({ msg: 'Shop not found or unauthorized' });
+
+        shop.isOpen = !shop.isOpen;
+        await shop.save();
+
+        res.json({ isOpen: shop.isOpen, msg: shop.isOpen ? 'Shop is now Open' : 'Shop is now Closed' });
+    } catch (err) {
+        console.error('Toggle status error:', err);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// GET /api/shops/mine — Get current seller's shop
+router.get('/mine', auth, async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ owner: req.user.id });
+        if (!shop) return res.status(404).json({ msg: 'No shop setup yet' });
+        res.json(shop);
+    } catch (err) {
+        console.error('Fetch my shop error:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// PUT /api/shops/mine — Update current seller's shop
+router.put('/mine', auth, async (req, res) => {
+    const { shopName, category, address, phone, latitude, longitude, deliveryRadius, shopImage, isOpen } = req.body;
+    try {
+        let shop = await Shop.findOne({ owner: req.user.id });
+        if (!shop) return res.status(404).json({ msg: 'No shop found' });
+
+        if (shopName) shop.shopName = shopName;
+        if (category) shop.category = category;
+        if (address) shop.address = address;
+        if (phone) shop.phone = phone;
+        if (deliveryRadius) shop.deliveryRadius = deliveryRadius;
+        if (shopImage !== undefined) shop.shopImage = shopImage;
+        if (isOpen !== undefined) shop.isOpen = isOpen;
+
+        if (latitude !== undefined && longitude !== undefined) {
+             shop.location = {
+                type: 'Point',
+                coordinates: [parseFloat(longitude), parseFloat(latitude)],
+            };
+        }
+
+        await shop.save();
+        res.json(shop);
+    } catch (err) {
+        console.error('Update my shop error:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

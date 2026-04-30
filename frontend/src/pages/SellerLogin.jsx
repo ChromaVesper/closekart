@@ -4,6 +4,7 @@ import { auth, db } from '../firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Store, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import api from '../services/api';
 
 export default function SellerLogin() {
     const navigate = useNavigate();
@@ -46,8 +47,20 @@ export default function SellerLogin() {
                     status: 'pending',
                     createdAt: serverTimestamp()
                 });
-                navigate('/seller-dashboard');
             }
+
+            // Sync JWT with Node Backend
+            try {
+                const apiRes = await api.post('/auth/firebase-login', {
+                    uid: user.uid,
+                    email: user.email,
+                    name: user.displayName,
+                    role: 'seller'
+                });
+                if (apiRes.data.token) localStorage.setItem('token', apiRes.data.token);
+            } catch (err) { console.error("JWT Sync error", err); }
+
+            navigate('/seller-dashboard');
         } catch (err) {
             console.error(err);
             setError(err.message || 'Failed to sign in. Check your credentials.');
@@ -88,6 +101,18 @@ export default function SellerLogin() {
                     }, { merge: true });
                 }
             }
+            
+            // Sync JWT with Node Backend
+            try {
+                const apiRes = await api.post('/auth/firebase-login', {
+                    uid: user.uid,
+                    email: user.email,
+                    name: user.displayName,
+                    role: 'seller'
+                });
+                if (apiRes.data.token) localStorage.setItem('token', apiRes.data.token);
+            } catch (err) { console.error("JWT Sync error", err); }
+
             navigate('/seller-dashboard');
         } catch (err) {
             console.error(err);

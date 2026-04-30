@@ -1,23 +1,30 @@
-import React from 'react';
-import { Search, User, MapPin, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, User, MapPin, ChevronDown, Bell, Zap } from 'lucide-react';
 import { useUserLocation } from '../context/LocationContext';
 import { useAddress } from '../context/AddressContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Heart, ShoppingBag, Store } from 'lucide-react';
+import { LogOut, Heart, ShoppingBag, Store, ShoppingCart, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
     const { locationName } = useUserLocation();
     const { selectedAddress } = useAddress();
     const { user, profile } = useAuth();
-    const [profileOpen, setProfileOpen] = React.useState(false);
-    const dropdownRef = React.useRef(null);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
-    // Close dropdown on outside click
-    React.useEffect(() => {
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 12);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
         const handler = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setProfileOpen(false);
@@ -30,156 +37,254 @@ const Header = () => {
     const handleLogout = async () => {
         try {
             await signOut(auth);
-            localStorage.removeItem("userRole");
+            localStorage.removeItem('userRole');
             setProfileOpen(false);
             navigate('/', { replace: true });
         } catch (error) {
-            console.error("Logout Error:", error);
+            console.error('Logout Error:', error);
         }
     };
 
-    // Prefer selected address label, else GPS name, else fallback
-    let displayName = "Mithapur";
+    let displayName = 'Mithapur';
     if (selectedAddress) {
-        displayName = selectedAddress.label || selectedAddress.fullAddress.split(',')[0];
-    } else if (locationName && locationName !== "Detected location") {
+        displayName = selectedAddress.label || selectedAddress.fullAddress?.split(',')[0];
+    } else if (locationName && locationName !== 'Detected location') {
         displayName = locationName;
     }
 
-    return (
-        <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] transition-all">
-            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    const isSeller = profile?.role === 'seller';
 
-                {/* Left: Logo & Location (Mobile and Desktop) */}
-                <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-                    <Link to="/" className="text-2xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent tracking-tight">
-                        CloseKart
+    return (
+        <motion.header
+            initial={{ y: -80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className={`sticky top-0 z-50 transition-all duration-500 ${
+                scrolled
+                    ? 'glass-effect shadow-[0_8px_32px_-8px_rgba(99,102,241,0.12)]'
+                    : 'bg-white/70 backdrop-blur-xl border-b border-white/50'
+            }`}
+        >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+
+                {/* Logo + Location */}
+                <div className="flex items-center gap-4 sm:gap-5 shrink-0">
+                    <Link to="/" className="flex items-center gap-2.5 group">
+                        {/* Logo mark */}
+                        <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 group-hover:shadow-indigo-500/50 transition-all duration-300">
+                            <Zap size={18} className="text-white fill-white" strokeWidth={0} />
+                            <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <span className="hidden sm:block text-xl font-black tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                            CloseKart
+                        </span>
                     </Link>
 
-                    <div className="hidden sm:flex flex-col cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition" onClick={() => navigate('/select-address', { replace: false })}>
-                        <div className="flex items-center gap-1 text-[10px] text-brand-primary font-bold uppercase tracking-wider">
-                            <MapPin size={10} /> {selectedAddress ? selectedAddress.label : 'Delivery to'}
+                    {/* Location chip — desktop */}
+                    <button
+                        onClick={() => navigate('/select-address', { replace: false })}
+                        className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-100/80 hover:border-indigo-200 transition-all duration-200 group max-w-[200px]"
+                    >
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm shrink-0">
+                            <MapPin size={12} className="text-white" />
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-800 font-semibold">
-                            <span className="truncate max-w-[160px]">{displayName}</span>
-                            <ChevronDown size={14} className="text-gray-400" />
+                        <div className="text-left min-w-0">
+                            <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider block leading-none mb-0.5">
+                                {selectedAddress ? selectedAddress.label : 'Delivery to'}
+                            </span>
+                            <span className="text-xs font-semibold text-gray-700 truncate block max-w-[130px] leading-none">
+                                {displayName}
+                            </span>
+                        </div>
+                        <ChevronDown size={13} className="text-indigo-400 shrink-0 group-hover:rotate-180 transition-transform duration-300" />
+                    </button>
+                </div>
+
+                {/* Search — Desktop */}
+                <div className="hidden md:flex flex-1 max-w-2xl mx-4">
+                    <div
+                        onClick={() => navigate('/search', { replace: false })}
+                        className="relative w-full cursor-pointer group"
+                    >
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
+                        <div className="relative flex items-center w-full bg-gray-50/90 hover:bg-white border border-gray-200/80 hover:border-indigo-200 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-indigo-100/50 px-4 py-2.5 gap-3">
+                            <Search size={16} className="text-gray-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                            <span className="text-sm text-gray-400 font-medium flex-1 select-none">
+                                Search products, brands and categories...
+                            </span>
+                            <kbd className="hidden lg:flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-400 shadow-sm">
+                                ⌘K
+                            </kbd>
                         </div>
                     </div>
                 </div>
 
-                {/* Center: Search Bar (Hidden on Mobile, full width on Desktop) */}
-                <div className="hidden md:flex flex-1 max-w-2xl mx-6">
-                    <div className="relative w-full">
-                        <input
-                            type="text"
-                            placeholder="Search products, brands and categories..."
-                            className="w-full bg-gray-50 border border-transparent hover:border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary block pl-11 pt-2.5 pb-2.5 outline-none transition-all shadow-sm"
-                            onClick={() => navigate('/search', { replace: false })}
-                            readOnly
-                        />
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                            <Search size={16} className="text-gray-400" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right: Actions */}
-                <div className="flex items-center gap-3 shrink-0">
-                    {/* Mobile Search Icon */}
-                    <button className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-full transition" onClick={() => navigate('/search', { replace: false })}>
-                        <Search size={22} className="text-gray-700" />
+                {/* Right Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                    {/* Mobile Search */}
+                    <button
+                        onClick={() => navigate('/search', { replace: false })}
+                        className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 border border-gray-200/80 hover:border-indigo-200 transition-all duration-200 tap-scale"
+                    >
+                        <Search size={18} />
                     </button>
 
-                    {/* Profile Dropdown */}
+                    {/* Cart */}
+                    <Link
+                        to="/cart"
+                        className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 border border-gray-200/80 hover:border-indigo-200 transition-all duration-200 tap-scale"
+                    >
+                        <ShoppingCart size={18} />
+                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                            0
+                        </span>
+                    </Link>
+
+                    {/* Profile */}
                     {user ? (
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setProfileOpen(!profileOpen)}
-                                className="flex items-center space-x-2 px-2 py-1.5 sm:px-3 sm:py-2 border border-blue-200 rounded-xl hover:bg-blue-50 transition shadow-sm bg-white"
+                                className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl bg-gray-50 hover:bg-indigo-50 border border-gray-200/80 hover:border-indigo-200 transition-all duration-200 tap-scale"
                             >
-                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-blue-200">
-                                    {user.photoURL ?
-                                        <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" /> :
-                                        <User size={16} className="text-blue-600" />
-                                    }
+                                <div className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-indigo-200 shadow-sm">
+                                    {user.photoURL ? (
+                                        <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                                            <span className="text-white text-xs font-black">
+                                                {(profile?.name || user.displayName || 'U')[0].toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full" />
                                 </div>
-                                <div className="hidden sm:flex flex-col items-start pr-1">
-                                    <span className="text-xs font-bold text-gray-900 max-w-[100px] truncate leading-tight">
-                                        {profile?.name || user.displayName || 'Account'}
+                                <div className="hidden sm:flex flex-col items-start leading-none">
+                                    <span className="text-xs font-bold text-gray-800 max-w-[90px] truncate">
+                                        {(profile?.name || user.displayName || 'Account').split(' ')[0]}
                                     </span>
-                                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider leading-tight">
-                                        {profile?.role === 'seller' ? 'Seller' : 'Buyer'}
+                                    <span className="text-[10px] font-semibold text-indigo-500 mt-0.5">
+                                        {isSeller ? '✦ Seller' : 'Buyer'}
                                     </span>
                                 </div>
-                                <ChevronDown size={14} className={`hidden sm:block text-gray-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDown
+                                    size={13}
+                                    className={`hidden sm:block text-gray-400 transition-transform duration-300 ${profileOpen ? 'rotate-180' : ''}`}
+                                />
                             </button>
 
-                            {profileOpen && (
-                                <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gray-100 py-3 z-[100] transform origin-top-right transition-all animate-[fadeIn_0.2s_ease-out]">
-                                    <div className="px-5 py-3 border-b border-gray-100 mb-2">
-                                        <p className="text-sm font-black text-gray-900 truncate">{profile?.name || user.displayName || 'Welcome'}</p>
-                                        <p className="text-xs text-gray-500 font-medium truncate mt-0.5">{user.email}</p>
-                                    </div>
+                            <AnimatePresence>
+                                {profileOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.93, y: 8 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.93, y: 8 }}
+                                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                                        className="absolute right-0 mt-2 w-64 glass rounded-2xl shadow-[0_20px_60px_-10px_rgba(99,102,241,0.2)] border border-white/70 py-2 z-[100] overflow-hidden"
+                                    >
+                                        {/* Profile Header */}
+                                        <div className="px-4 py-3.5 border-b border-gray-100/60 mb-1">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-indigo-100 shadow-sm shrink-0">
+                                                    {user.photoURL ? (
+                                                        <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                                                            <span className="text-white font-black text-sm">
+                                                                {(profile?.name || user.displayName || 'U')[0].toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-black text-gray-900 truncate">{profile?.name || user.displayName || 'User'}</p>
+                                                    <p className="text-xs text-gray-500 font-medium truncate mt-0.5">{user.email}</p>
+                                                    <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isSeller ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                                        {isSeller ? '✦ Seller Account' : '✓ Buyer Account'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                    {profile?.role === 'seller' ? (
-                                        <>
-                                            <Link to="/seller-dashboard" onClick={() => setProfileOpen(false)}
-                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-50 transition mx-2 rounded-xl">
-                                                <Store size={18} /><span>Seller Dashboard</span>
-                                            </Link>
-                                            <Link to="/seller-dashboard" onClick={() => setProfileOpen(false)}
-                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition mx-2 rounded-xl">
-                                                <ShoppingBag size={18} /><span>Manage Orders</span>
-                                            </Link>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Link to="/buyer-dashboard" onClick={() => setProfileOpen(false)}
-                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50 transition mx-2 rounded-xl">
-                                                <User size={18} /><span>Buyer Dashboard</span>
-                                            </Link>
-                                            <Link to="/buyer-dashboard" onClick={() => setProfileOpen(false)}
-                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition mx-2 rounded-xl">
-                                                <ShoppingBag size={18} /><span>My Orders</span>
-                                            </Link>
-                                            <Link to="/buyer-dashboard" onClick={() => setProfileOpen(false)}
-                                                className="flex items-center space-x-3 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition mx-2 rounded-xl">
-                                                <Heart size={18} /><span>My Wishlist</span>
-                                            </Link>
-                                        </>
-                                    )}
+                                        {/* Menu Items */}
+                                        <div className="px-2 space-y-0.5">
+                                            {isSeller ? (
+                                                <>
+                                                    <DropItem icon={Store} label="Seller Dashboard" to="/seller" gradient="from-indigo-500 to-purple-500" onClick={() => setProfileOpen(false)} />
+                                                    <DropItem icon={ShoppingBag} label="Manage Orders" to="/seller/orders" onClick={() => setProfileOpen(false)} />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <DropItem icon={User} label="Buyer Dashboard" to="/buyer-dashboard" gradient="from-blue-500 to-indigo-500" onClick={() => setProfileOpen(false)} />
+                                                    <DropItem icon={ShoppingBag} label="My Orders" to="/orders" onClick={() => setProfileOpen(false)} />
+                                                    <DropItem icon={Heart} label="My Wishlist" to="/wishlist" onClick={() => setProfileOpen(false)} />
+                                                </>
+                                            )}
+                                            <DropItem icon={Settings} label="Account Settings" to="/account" onClick={() => setProfileOpen(false)} />
+                                        </div>
 
-                                    <div className="border-t border-gray-100 mt-2 pt-2 px-2">
-                                        <button onClick={handleLogout}
-                                            className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full text-left font-bold rounded-xl">
-                                            <LogOut size={18} /><span>Sign Out safely</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                        {/* Logout */}
+                                        <div className="border-t border-gray-100/60 mt-2 pt-2 px-2">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50/80 hover:text-red-600 transition-all duration-200"
+                                            >
+                                                <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+                                                    <LogOut size={14} />
+                                                </div>
+                                                Sign out
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" className="p-2 sm:px-4 sm:py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-primary rounded-xl transition flex items-center gap-2 font-medium shadow-sm">
-                            <User size={18} />
-                            <span className="hidden sm:block text-sm">Account</span>
+                        <Link
+                            to="/login"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-sm font-bold shadow-md shadow-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/35 hover:-translate-y-0.5 transition-all duration-200 tap-scale"
+                        >
+                            <User size={15} />
+                            <span className="hidden sm:block">Sign In</span>
                         </Link>
                     )}
                 </div>
             </div>
 
-            {/* Mobile Location Strip (Shown under header on tiny screens) */}
-            <div className="sm:hidden px-4 py-2 border-t border-gray-100 bg-white flex justify-between items-center cursor-pointer active:bg-gray-50" onClick={() => navigate('/select-address', { replace: false })}>
-                <div className="flex items-center gap-1.5">
-                    <div className="bg-brand-primary/10 p-1 rounded-full">
-                        <MapPin size={12} className="text-brand-primary" />
+            {/* Mobile Location Strip */}
+            <div
+                className="sm:hidden px-4 py-2 border-t border-gray-100/60 bg-white/60 backdrop-blur-sm flex items-center justify-between cursor-pointer active:bg-indigo-50/50 transition-colors"
+                onClick={() => navigate('/select-address', { replace: false })}
+            >
+                <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                        <MapPin size={10} className="text-white" />
                     </div>
-                    <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">{selectedAddress ? selectedAddress.label : 'Delivery'}</span>
-                    <span className="text-xs text-gray-800 font-semibold truncate max-w-[180px]">{displayName}</span>
+                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
+                        {selectedAddress ? selectedAddress.label : 'Delivery to'}
+                    </span>
+                    <span className="text-xs text-gray-700 font-semibold truncate max-w-[160px]">
+                        {displayName}
+                    </span>
                 </div>
-                <ChevronDown size={14} className="text-gray-400" />
+                <ChevronDown size={13} className="text-gray-400 shrink-0" />
             </div>
-        </header>
+        </motion.header>
     );
 };
+
+// Reusable dropdown item
+const DropItem = ({ icon: Icon, label, to, onClick, gradient }) => (
+    <Link
+        to={to}
+        onClick={onClick}
+        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50/80 transition-all duration-150 group"
+    >
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${gradient ? `bg-gradient-to-br ${gradient}` : 'bg-gray-100'} shrink-0 group-hover:scale-110 transition-transform duration-200`}>
+            <Icon size={14} className={gradient ? 'text-white' : 'text-gray-600'} />
+        </div>
+        <span className="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">{label}</span>
+    </Link>
+);
 
 export default Header;

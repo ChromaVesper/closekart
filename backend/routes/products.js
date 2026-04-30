@@ -78,12 +78,13 @@ router.get('/nearby', async (req, res) => {
     }
 });
 
-// ── GET /api/products?search=Q&category=C&minPrice=X&maxPrice=Y ───────────────
+// ── GET /api/products?search=Q&category=C&minPrice=X&maxPrice=Y&shopId=S ────
 router.get('/', async (req, res) => {
-    const { search, category, minPrice, maxPrice } = req.query;
+    const { search, category, minPrice, maxPrice, shopId } = req.query;
     let query = {};
     if (search) query.name = { $regex: search, $options: 'i' };
     if (category) query.category = { $regex: category, $options: 'i' };
+    if (shopId) query.shop = shopId;
     if (minPrice || maxPrice) {
         query.price = {};
         if (minPrice) query.price.$gte = Number(minPrice);
@@ -93,6 +94,20 @@ router.get('/', async (req, res) => {
         const products = await Product.find(query).populate('shop');
         res.json(products);
     } catch (err) {
+        res.status(500).json({ msg: 'Server Error' });
+    }
+});
+
+// ── GET /api/products/seller ──────────────────────────────────────────────────
+router.get('/seller', auth, async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ owner: req.user.id });
+        if (!shop) return res.status(404).json({ msg: 'No shop found for seller' });
+        
+        const products = await Product.find({ shop: shop._id }).populate('shop');
+        res.json(products);
+    } catch (err) {
+        console.error("Error fetching seller products:", err);
         res.status(500).json({ msg: 'Server Error' });
     }
 });

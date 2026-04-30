@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { db, auth } from '../firebase';
+import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { PackageSearch, IndianRupee, Layers, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function SellerAddProduct() {
     const navigate = useNavigate();
-    const { profile } = useAuth();
+    const { user, profile } = useAuth();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(null);
@@ -43,7 +43,6 @@ export default function SellerAddProduct() {
         setSuccess(false);
 
         try {
-            const user = auth.currentUser;
             if (!user) throw new Error("You must be logged in as a seller.");
 
             const newProduct = {

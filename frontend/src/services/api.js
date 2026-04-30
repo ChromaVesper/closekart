@@ -9,16 +9,27 @@ const api = axios.create({
     },
 });
 
-// Add a request interceptor to include auth token if available
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
-            config.headers['x-auth-token'] = token;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        console.error('API call failed:', error.response?.status, error.response?.data?.msg || error.message);
+        if (error.response?.status === 401) {
+            // Optional: Handle token expiration globally here if desired
+            // localStorage.removeItem('token');
+        }
         return Promise.reject(error);
     }
 );

@@ -1,71 +1,131 @@
 import React from 'react';
-import { Home, Compass, PlaySquare, LayoutGrid, User, ShoppingCart, LogOut } from 'lucide-react';
+import { Home, Compass, PlaySquare, LayoutGrid, User, ShoppingCart, Heart, Zap, Store, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+
+const mainItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/explore', icon: Compass, label: 'Explore' },
+    { path: '/shops', icon: Store, label: 'Shops' },
+    { path: '/play', icon: PlaySquare, label: 'Play' },
+    { path: '/cart', icon: ShoppingCart, label: 'Cart', badge: 0 },
+    { path: '/wishlist', icon: Heart, label: 'Wishlist' },
+];
+
+const bottomItems = [
+    { path: '/account', icon: User, label: 'Account' },
+    { path: '/help', icon: HelpCircle, label: 'Help' },
+];
 
 const DesktopSidebar = () => {
     const location = useLocation();
     const currentPath = location.pathname;
-    const user = null; const logout = () => {}; const loginStore = () => {}; const loading = false;
-
-    const navItems = [
-        { path: '/', icon: Home, label: 'Home' },
-        { path: '/explore', icon: Compass, label: 'Explore' },
-        { path: '/play', icon: PlaySquare, label: 'Play' },
-        { path: '/categories', icon: LayoutGrid, label: 'Categories' },
-        { path: '/cart', icon: ShoppingCart, label: 'Cart', badge: 3 },
-        { path: '/profile', icon: User, label: 'Account' },
-    ];
+    const { user, profile } = useAuth ? useAuth() : { user: null, profile: null };
 
     return (
-        <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-100 h-[calc(100vh-64px)] fixed left-0 top-16 z-40 overflow-y-auto pt-6 pb-4">
-            <div className="flex-1 px-4 space-y-2">
-                {navItems.map((item) => {
-                    const isActive = currentPath === item.path;
-                    const Icon = item.icon;
-                    return (
-                        <Link
-                            key={item.label}
-                            to={item.path}
-                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
-                                    ? 'bg-blue-50 text-brand-primary font-bold'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium'
-                                }`}
-                        >
-                            <div className="relative">
-                                <Icon size={22} className={`${isActive ? 'text-brand-primary fill-blue-100' : 'text-gray-500 group-hover:text-gray-700'}`} />
-                                {item.badge && (
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white shadow-sm">
-                                        {item.badge}
-                                    </span>
-                                )}
-                            </div>
-                            <span className="text-sm">{item.label}</span>
-                        </Link>
-                    );
-                })}
-            </div>
+        <aside className="hidden md:flex flex-col w-64 h-[calc(100vh-64px)] fixed left-0 top-16 z-40 overflow-y-auto no-scrollbar">
+            {/* Sidebar background */}
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-2xl border-r border-gray-100/80" />
 
-            {user && (
-                <div className="px-4 mt-auto">
-                    <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 flex flex-col gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold">
-                                {user.name?.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            {/* Gradient accent top */}
+            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-indigo-50/60 to-transparent pointer-events-none" />
+
+            <div className="relative flex flex-col h-full pt-5 pb-4">
+                {/* Main Nav */}
+                <nav className="flex-1 px-3 space-y-0.5">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-3 mb-3">Navigation</p>
+                    {mainItems.map((item) => {
+                        const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+                        const Icon = item.icon;
+
+                        return (
+                            <Link
+                                key={item.label}
+                                to={item.path}
+                                className={`relative flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                                    isActive
+                                        ? 'bg-gradient-to-r from-indigo-50 to-purple-50/50 text-indigo-700'
+                                        : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900'
+                                }`}
+                            >
+                                {/* Active indicator */}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="sidebar-active"
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"
+                                        transition={{ type: 'spring', bounce: 0.3, duration: 0.4 }}
+                                    />
+                                )}
+
+                                {/* Icon container */}
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 ${
+                                    isActive
+                                        ? 'bg-gradient-to-br from-indigo-500 to-purple-500 shadow-md shadow-indigo-300/40'
+                                        : 'bg-gray-100/80 group-hover:bg-gray-200/60'
+                                }`}>
+                                    <Icon
+                                        size={16}
+                                        className={`transition-colors ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'}`}
+                                        strokeWidth={isActive ? 2.5 : 1.8}
+                                    />
+                                    {item.badge > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white">
+                                            {item.badge}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <span className={`text-sm font-semibold transition-all duration-200 ${isActive ? 'text-indigo-700 font-bold' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                                    {item.label}
+                                </span>
+                            </Link>
+                        );
+                    })}
+
+                    {/* Promo card */}
+                    <div className="mt-6 mx-1">
+                        <div className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-indigo-300/30">
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)]" />
+                            <div className="relative">
+                                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                                    <Zap size={16} className="text-white fill-white" strokeWidth={0} />
+                                </div>
+                                <p className="text-white font-black text-sm leading-tight">Sell on CloseKart</p>
+                                <p className="text-white/70 text-xs mt-1 leading-relaxed">Reach thousands of local buyers</p>
+                                <Link
+                                    to="/seller-login"
+                                    className="inline-block mt-3 px-4 py-1.5 bg-white text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-sm"
+                                >
+                                    Start Selling →
+                                </Link>
                             </div>
                         </div>
-                        <button
-                            onClick={logout}
-                            className="flex items-center gap-2 text-sm text-red-600 font-medium bg-white border border-red-100 rounded-lg px-3 py-2 w-full justify-center transition hover:bg-red-50"
-                        >
-                            <LogOut size={16} /> Logout
-                        </button>
                     </div>
+                </nav>
+
+                {/* Bottom Items */}
+                <div className="px-3 pt-4 border-t border-gray-100/80 space-y-0.5 mt-2">
+                    {bottomItems.map((item) => {
+                        const isActive = currentPath === item.path;
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.label}
+                                to={item.path}
+                                className={`flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                                    isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                                }`}
+                            >
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-indigo-100' : 'bg-gray-100/80 group-hover:bg-gray-200/60'}`}>
+                                    <Icon size={15} className={isActive ? 'text-indigo-600' : 'text-gray-500'} strokeWidth={1.8} />
+                                </div>
+                                <span className="text-sm font-semibold">{item.label}</span>
+                            </Link>
+                        );
+                    })}
                 </div>
-            )}
+            </div>
         </aside>
     );
 };

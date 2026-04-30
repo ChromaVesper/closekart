@@ -55,13 +55,22 @@ router.post("/login", async (req, res) => {
 
 router.post("/firebase-login", async (req, res) => {
     try {
-        const { phone, uid } = req.body;
+        const { phone, email, name, uid, role } = req.body;
 
-        let user = await User.findOne({ phone });
+        // Try to find user by email OR phone
+        let query = {};
+        if (email) query.email = email;
+        else if (phone) query.phone = phone;
+        else query.firebaseUid = uid;
+
+        let user = await User.findOne(query);
 
         if (!user) {
             user = await User.create({
-                phone,
+                phone: phone || "",
+                email: email || "",
+                name: name || "User",
+                role: role || "buyer",
                 firebaseUid: uid,
                 provider: "firebase"
             });

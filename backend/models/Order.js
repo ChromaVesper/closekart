@@ -8,6 +8,12 @@ const orderSchema = new mongoose.Schema({
         required: true
     },
 
+    shopId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Shop",
+        required: true
+    },
+
     products: [
         {
             productId: String,
@@ -20,8 +26,15 @@ const orderSchema = new mongoose.Schema({
 
     totalAmount: Number,
 
+    deliveryLocation: {
+        lat: Number,
+        lng: Number,
+        address: String
+    },
+
     status: {
         type: String,
+        enum: ["placed", "preparing", "out_for_delivery", "delivered", "cancelled"],
         default: "placed"
     }
 

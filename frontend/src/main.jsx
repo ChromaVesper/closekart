@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import { LocationProvider } from "./context/LocationContext";
 import { AddressProvider } from "./context/AddressContext";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { HashRouter } from "react-router-dom";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -13,11 +14,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <HashRouter>
         <ErrorBoundary>
             <AuthProvider>
-                <LocationProvider>
-                    <AddressProvider>
-                        <App />
-                    </AddressProvider>
-                </LocationProvider>
+                <CartProvider>
+                    <LocationProvider>
+                        <AddressProvider>
+                            <App />
+                        </AddressProvider>
+                    </LocationProvider>
+                </CartProvider>
             </AuthProvider>
         </ErrorBoundary>
     </HashRouter>

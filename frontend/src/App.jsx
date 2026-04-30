@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import SwapKeeperRoute from './components/SwapKeeperRoute';
@@ -8,7 +9,13 @@ import { useAuth } from './context/AuthContext';
 // Loading Fallback
 const PageLoader = () => (
     <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
+        <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-500 border-r-purple-500 animate-spin" />
+            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 opacity-20 animate-pulse" />
+            <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 animate-pulse-soft" />
+            </div>
+        </div>
     </div>
 );
 
@@ -40,10 +47,13 @@ const SellerUploadShort = React.lazy(() => import('./pages/SellerUploadShort'));
 const Wishlist = React.lazy(() => import('./pages/Wishlist'));
 const SellerLogin = React.lazy(() => import('./pages/SellerLogin'));
 const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
+const SetupShop = React.lazy(() => import('./pages/SetupShop'));
+const AddProduct = React.lazy(() => import('./pages/AddProduct'));
+const ManageProducts = React.lazy(() => import('./pages/ManageProducts'));
+const SellerOrders = React.lazy(() => import('./pages/SellerOrders'));
 const ShopkeeperDashboard = React.lazy(() => import('./pages/ShopkeeperDashboard'));
 const BuyerDashboard = React.lazy(() => import('./pages/BuyerDashboard'));
 const SelectRole = React.lazy(() => import('./pages/SelectRole'));
-const SellerAddProduct = React.lazy(() => import('./pages/SellerAddProduct'));
 import SellerProtectedRoute from './components/SellerProtectedRoute';
 import BuyerProtectedRoute from './components/BuyerProtectedRoute';
 import AdminRoute from './components/AdminRoute';
@@ -54,20 +64,12 @@ const SwapKeeperItems = React.lazy(() => import('./pages/swapkeeper/SwapKeeperIt
 const SwapKeeperOrders = React.lazy(() => import('./pages/swapkeeper/SwapKeeperOrders'));
 const SwapKeeperProfile = React.lazy(() => import('./pages/swapkeeper/SwapKeeperProfile'));
 
-function App() {
-    const { loading } = useAuth();
-
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
-            </div>
-        );
-    }
-
+const AnimatedRoutes = () => {
+    const location = useLocation();
+    
     return (
-        <Suspense fallback={<PageLoader />}>
-            <Routes>
+        <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
                 {/* ── SwapKeeper Dashboard ── */}
                 <Route path="/swapkeeper" element={
                     <SwapKeeperRoute>
@@ -84,7 +86,7 @@ function App() {
                 <Route path="/*" element={
                     <MainLayout>
                         <Suspense fallback={<PageLoader />}>
-                            <Routes>
+                            <Routes location={location} key={location.pathname}>
                                 <Route path="/" element={<Home />} />
                                 <Route path="/search" element={<Search />} />
                                 <Route path="/shop/:id" element={<ShopDetails />} />
@@ -104,11 +106,10 @@ function App() {
                                 <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
                                 <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                                 <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-                                <Route path="/shop-dashboard" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
-                                <Route path="/seller/upload-short" element={<ProtectedRoute><SellerUploadShort /></ProtectedRoute>} />
-                                <Route path="/seller-dashboard" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
-                                <Route path="/seller/add-product" element={<SellerProtectedRoute><SellerAddProduct /></SellerProtectedRoute>} />
-                                <Route path="/shopkeeper-dashboard" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
+
+                                {/* Legacy/Direct Routes (Redirecting to new structure) */}
+                                <Route path="/seller-dashboard" element={<Navigate to="/seller" replace />} /> 
+                                <Route path="/shop-dashboard" element={<Navigate to="/seller" replace />} />
                                 <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                                 <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
@@ -117,6 +118,7 @@ function App() {
                                 <Route path="/select-address" element={<SelectAddressPage />} />
                                 <Route path="/shops" element={<Shops />} />
                                 <Route path="/register-shop" element={<RegisterShop />} />
+                                <Route path="/setup-shop" element={<SellerProtectedRoute><SetupShop /></SellerProtectedRoute>} />
                                 <Route path="/pricing" element={<Pricing />} />
                                 <Route path="/about" element={<About />} />
                                 <Route path="/help" element={<Help />} />
@@ -124,7 +126,38 @@ function App() {
                         </Suspense>
                     </MainLayout>
                 } />
+
+                {/* ── Professional Seller Portal ── */}
+                <Route path="/seller" element={<SellerProtectedRoute><ShopkeeperDashboard /></SellerProtectedRoute>} />
+                <Route path="/seller/*" element={<Navigate to="/seller" replace />} />
+                {/* Alias: /shopkeeper-dashboard → /seller */}
+                <Route path="/shopkeeper-dashboard" element={<Navigate to="/seller" replace />} />
             </Routes>
+        </AnimatePresence>
+    );
+};
+
+function App() {
+    const { loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+                <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-500 border-r-purple-500 animate-spin" />
+                    <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 opacity-15 animate-pulse" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 animate-pulse" />
+                    </div>
+                </div>
+                <p className="text-sm font-bold text-gray-400 tracking-wide">Loading CloseKart...</p>
+            </div>
+        );
+    }
+
+    return (
+        <Suspense fallback={<PageLoader />}>
+            <AnimatedRoutes />
         </Suspense>
     );
 }

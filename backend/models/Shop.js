@@ -80,6 +80,10 @@ const shopSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    isOpen: {
+        type: Boolean,
+        default: true,
+    },
     createdAt: {
         type: Date,
         default: Date.now,

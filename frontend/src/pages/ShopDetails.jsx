@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase';
 import { MapPin, Star, Phone, Truck, Clock } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
@@ -11,28 +12,26 @@ const ShopDetails = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Mock data fetch
-        setTimeout(() => {
-            setShop({
-                _id: id,
-                shopName: 'Gupta General Store',
-                category: 'Grocery',
-                rating: 4.8,
-                reviewCount: 124,
-                address: '123 Main Street, Sample City',
-                phone: '9876543210',
-                distanceKm: 0.5,
-                deliveryAvailable: true,
-                deliveryCharge: 20,
-                openingHours: '9:00 AM - 9:00 PM'
-            });
-            setProducts([
-                { _id: '1', name: 'Amul Milk (Taaza)', price: 54, availability: true, stockQuantity: 20, category: 'Dairy', shop: { shopName: 'Gupta General Store' } },
-                { _id: '2', name: 'Basmati Rice 1kg', price: 120, availability: true, stockQuantity: 15, category: 'Grocery', shop: { shopName: 'Gupta General Store' } },
-                { _id: '3', name: 'Sugar 1kg', price: 45, availability: true, stockQuantity: 100, category: 'Grocery', shop: { shopName: 'Gupta General Store' } },
-            ]);
-            setLoading(false);
-        }, 500);
+        const fetchShopAndProducts = async () => {
+            try {
+                // Fetch shop details
+                const shopSnap = await getDoc(doc(db, 'shops', id));
+                if (shopSnap.exists()) {
+                    setShop({ id: shopSnap.id, ...shopSnap.data() });
+                }
+
+                // Fetch shop products natively
+                const q = query(collection(db, 'products'), where('shopId', '==', id), where('inStock', '==', true));
+                const prodSnap = await getDocs(q);
+                setProducts(prodSnap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() })));
+            } catch (error) {
+                console.error("Error fetching shop details", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchShopAndProducts();
     }, [id]);
 
     if (loading) return <div className="p-8 text-center">Loading Shop Details...</div>;
@@ -52,12 +51,12 @@ const ShopDetails = () => {
                         </div>
                     </div>
                     <div className="mt-4 md:mt-0 flex flex-col items-end space-y-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${shop.deliveryAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {shop.deliveryAvailable ? 'Delivery Available' : 'Pickup Only'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${shop.isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {shop.isOpen ? 'Open Now' : 'Currently Closed'}
                         </span>
-                        {shop.deliveryAvailable && <span className="text-xs text-gray-500">Delivery Charge: ₹{shop.deliveryCharge}</span>}
+                        {shop.deliveryAvailable && <span className="text-xs text-gray-500">Delivery Charge: ₹{shop.deliveryCharge || 0}</span>}
                         <button className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-                            <Phone size={18} className="mr-2" /> Contact Shop
+                            <Phone size={18} className="mr-2" /> {shop.phone || 'Contact'}
                         </button>
                     </div>
                 </div>
@@ -83,9 +82,17 @@ const ShopDetails = () => {
             {/* Shop Products */}
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Products Available</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map(product => (
-                    <ProductCard key={product._id} product={product} />
-                ))}
+                {products.length > 0 ? (
+                    products.map(product => (
+                        <ProductCard key={product._id} product={product} />
+                    ))
+                ) : (
+                    <div className="col-span-full py-16 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                        <Store size={48} className="mb-4 text-gray-300" />
+                        <h3 className="text-lg font-bold text-gray-600">No Products Listed</h3>
+                        <p className="text-sm font-medium">This active store hasn't published any items yet.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

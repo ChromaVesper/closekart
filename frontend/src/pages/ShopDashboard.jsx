@@ -29,7 +29,7 @@ const ShopDashboard = () => {
         setSavingLocation(true);
         setLocationError('');
         try {
-            await api.put('/shops/my-location', {
+            await api.put('/shops/mine', {
                 latitude,
                 longitude,
                 address: fullAddress,

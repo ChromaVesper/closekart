@@ -27,6 +27,7 @@ const uploadRoutes = require('./routes/upload');
 const swapKeeperRoutes = require('./routes/swapKeeper');
 const addressRoutes = require('./routes/address');
 const shortsRoutes = require('./routes/shorts');
+const orderRoutes = require('./routes/orders');
 const path = require('path');
 
 // CORS Configuration - exact match per requirement
@@ -71,6 +72,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/swapkeeper', swapKeeperRoutes);
 app.use('/api/address', addressRoutes);
 app.use('/api/shorts', shortsRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check

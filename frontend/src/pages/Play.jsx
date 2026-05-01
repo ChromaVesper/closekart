@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import {
-    collection, doc, getDocs, addDoc, deleteDoc, getDoc,
+    collection, doc, addDoc, deleteDoc, getDoc,
     setDoc, query, orderBy, onSnapshot, serverTimestamp,
     updateDoc, increment
 } from 'firebase/firestore';
-import { Heart, MessageCircle, Share2, Bookmark, Play as PlayIcon, Pause as PauseIcon, Volume2, VolumeX, Send, X } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, Play as PlayIcon, Volume2, VolumeX, Send, X } from 'lucide-react';
+
 
 // ─── Firestore helpers ────────────────────────────────────────────────────────
 const likeId     = (uid, vid) => `${uid}_${vid}`;
@@ -321,24 +322,34 @@ export default function Play() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Try ordered fetch first; fallback to unordered if index missing
-        const fetchVideos = async () => {
-            try {
-                const q = query(collection(db, 'videos'), orderBy('createdAt', 'desc'));
-                const snap = await getDocs(q);
-                setVideos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            } catch {
-                try {
-                    const snap = await getDocs(collection(db, 'videos'));
-                    setVideos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-                } catch (e) {
-                    console.error('Failed to load videos:', e);
-                }
-            } finally {
+        console.log('[Play] Subscribing to Firestore videos collection…');
+        let unsub = null;
+
+        const subscribeOrdered = () => {
+            const q = query(collection(db, 'videos'), orderBy('createdAt', 'desc'));
+            unsub = onSnapshot(q, (snap) => {
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                console.log(`[Play] Loaded ${data.length} video(s) from Firestore`);
+                setVideos(data);
                 setLoading(false);
-            }
+            }, (err) => {
+                // Fallback: no orderBy (avoids composite index requirement)
+                console.warn('[Play] Ordered query failed, falling back to unordered:', err.code);
+                const q2 = collection(db, 'videos');
+                unsub = onSnapshot(q2, (snap2) => {
+                    const data2 = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+                    console.log(`[Play] Fallback: loaded ${data2.length} video(s)`);
+                    setVideos(data2);
+                    setLoading(false);
+                }, (err2) => {
+                    console.error('[Play] Failed to load videos:', err2);
+                    setLoading(false);
+                });
+            });
         };
-        fetchVideos();
+
+        subscribeOrdered();
+        return () => unsub && unsub();
     }, []);
 
     if (loading) return (

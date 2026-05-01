@@ -1,1 +1,0 @@
-import{d as s,r as t}from"./index-ezCnLsku.js";const E=()=>{const e=s(),[n,o]=t.useState(!1),[r,i]=t.useState({name:"",phone:""}),[u,c]=t.useState([]),[l,f]=t.useState([]),[g,d]=t.useState("profile"),[S,m]=t.useState(!1),[v,p]=t.useState(!0);return t.useEffect(()=>{{e("/login");return}},[null]),null};export{E as default};

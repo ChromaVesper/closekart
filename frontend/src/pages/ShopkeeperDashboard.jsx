@@ -14,8 +14,9 @@ import {
     MapPin, Phone, Tag, ToggleLeft, ToggleRight, AlertTriangle,
     Menu, X, Loader, Navigation, Image as ImageIcon, Archive,
     Clock, Truck, ChevronRight, Search, RefreshCw, Mail,
-    AlertCircle, FileText, BarChart2
+    AlertCircle, FileText, BarChart2, Video
 } from 'lucide-react';
+import SellerUploadShort from './SellerUploadShort';
 
 // ─── Firestore Collections ────────────────────────────────────────────────────
 const SHOPS_COL = 'shops';
@@ -726,6 +727,7 @@ export default function ShopkeeperDashboard() {
         { id: 'products',   icon: Package,         label: 'Manage Products' },
         { id: 'orders',     icon: ShoppingCart,    label: 'Orders', badge: newOrderCount },
         { id: 'inventory',  icon: Archive,         label: 'Inventory' },
+        { id: 'videos',     icon: Video,           label: 'Upload Reel' },
         { id: 'settings',   icon: Settings,        label: 'Settings' },
     ];
 
@@ -736,6 +738,7 @@ export default function ShopkeeperDashboard() {
         products:   <ManageProductsTab products={products} onEdit={p => { setEditingProduct(p); setActiveTab('addproduct'); }} />,
         orders:     <OrdersTab orders={orders} />,
         inventory:  <InventoryTab products={products} />,
+        videos:     <SellerUploadShort />,
         settings:   <SettingsTab user={user} shop={shop} isOnline={isOnline} setIsOnline={setIsOnline} />,
     };
 

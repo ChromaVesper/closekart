@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Gamepad2, LayoutGrid, User, ShoppingCart } from 'lucide-react';
+import { Home, Gamepad2, Compass, User, ShoppingCart } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const BottomNav = () => {
@@ -8,8 +8,8 @@ const BottomNav = () => {
 
     const navItems = [
         { path: '/', icon: Home, label: 'Home' },
+        { path: '/explore', icon: Compass, label: 'Explore' },
         { path: '/play', icon: Gamepad2, label: 'Play' },
-        { path: '/categories', icon: LayoutGrid, label: 'Categories' },
         { path: '/profile', icon: User, label: 'Account' },
         { path: '/cart', icon: ShoppingCart, label: 'Cart', badge: 3 },
     ];

@@ -3,11 +3,13 @@ import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { Package, Heart, User, HelpCircle, LogOut, ChevronRight, Settings, Grid } from "lucide-react";
+import { Package, Heart, User, HelpCircle, LogOut, ChevronRight, Settings, Grid, MapPin, Share2, CheckCircle, Loader, AlertCircle } from "lucide-react";
+import { useShareLocation } from '../hooks/useShareLocation';
 
 export default function Account() {
     const { user, profile } = useAuth();
     const navigate = useNavigate();
+    const { shareLiveLocation, status: shareStatus, error: shareError, reset: resetShare } = useShareLocation();
 
     const handleLogout = async () => {
         try {
@@ -144,6 +146,48 @@ export default function Account() {
                                 <p className="text-sm text-gray-500 mt-1 font-medium">Get support & FAQs</p>
                             </div>
                         </Link>
+
+                        {/* ── Share Live Location ── */}
+                        <button
+                            onClick={shareLiveLocation}
+                            disabled={shareStatus === 'loading'}
+                            className="glass-card sm:col-span-2 rounded-[1.5rem] p-5 flex items-center justify-between group bg-white/60 hover:bg-indigo-600 transition-all duration-300 border border-indigo-100 hover:border-indigo-600 disabled:opacity-70 disabled:pointer-events-none text-left"
+                        >
+                            <div className="flex items-center space-x-4">
+                                <div className={`p-3 rounded-[1rem] transition-colors ${
+                                    shareStatus === 'copied' || shareStatus === 'shared'
+                                        ? 'bg-emerald-100 text-emerald-600'
+                                        : shareStatus === 'error'
+                                        ? 'bg-red-100 text-red-500'
+                                        : 'bg-indigo-100 text-indigo-600 group-hover:bg-indigo-500 group-hover:text-white'
+                                }`}>
+                                    {shareStatus === 'loading' && <Loader size={24} strokeWidth={2} className="animate-spin" />}
+                                    {shareStatus === 'copied' && <CheckCircle size={24} strokeWidth={2} />}
+                                    {shareStatus === 'shared' && <CheckCircle size={24} strokeWidth={2} />}
+                                    {shareStatus === 'error' && <AlertCircle size={24} strokeWidth={2} />}
+                                    {shareStatus === 'idle' && <MapPin size={24} strokeWidth={2} />}
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-extrabold text-gray-900 group-hover:text-white transition-colors tracking-tight">
+                                        {shareStatus === 'loading' && 'Getting your location…'}
+                                        {shareStatus === 'copied' && 'Link copied to clipboard!'}
+                                        {shareStatus === 'shared' && 'Location shared!'}
+                                        {shareStatus === 'error' && 'Could not get location'}
+                                        {shareStatus === 'idle' && 'Share Live Location'}
+                                    </h3>
+                                    <p className="text-xs mt-0.5 font-medium transition-colors
+                                        text-gray-500 group-hover:text-indigo-200
+                                        ">
+                                        {shareStatus === 'error'
+                                            ? (shareError || 'Allow location access and try again')
+                                            : 'Send your exact GPS coordinates to anyone'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-500 transition-all shrink-0">
+                                <Share2 className="text-indigo-400 group-hover:text-white" size={18} strokeWidth={2.5} />
+                            </div>
+                        </button>
 
                         {/* Link to Seller Dashboard if they are seller (Optional/Preview style) */}
                         <Link

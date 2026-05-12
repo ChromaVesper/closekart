@@ -3,6 +3,7 @@ import { X, Loader, MapPin, Plus } from 'lucide-react';
 import { useAddress } from '../context/AddressContext';
 import AddressCard from './AddressCard';
 import AddressForm from './AddressForm';
+import { useShareLocation } from '../hooks/useShareLocation';
 
 const MapPickerLazy = lazy(() => import('./MapPicker'));
 
@@ -21,6 +22,7 @@ const TAB_MAP = 'map';
 const AddressSelector = ({ onClose, inline = false }) => {
     const user = null; const logout = () => {}; const loginStore = () => {}; const loading = false;
     const { addressList, selectedAddress, selectAddress, addAddress, updateAddress, setDefault, deleteAddress } = useAddress();
+    const { shareAddress } = useShareLocation();
 
     const [tab, setTab] = useState(TAB_LIST);
     const [editTarget, setEditTarget] = useState(null); // address object when editing
@@ -174,6 +176,7 @@ const AddressSelector = ({ onClose, inline = false }) => {
                                 onEdit={() => openEdit(addr)}
                                 onDelete={() => handleDelete(addr)}
                                 onSetDefault={() => handleSetDefault(addr)}
+                                onShare={() => shareAddress(addr)}
                             />
                         ))}
                     </div>

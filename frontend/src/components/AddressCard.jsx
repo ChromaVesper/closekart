@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Briefcase, Hotel, MapPin, Star, Pencil, Trash2, CheckCircle } from 'lucide-react';
+import { Home, Briefcase, Hotel, MapPin, Star, Pencil, Trash2, CheckCircle, Share2 } from 'lucide-react';
 
 const LABEL_ICON = {
     Home: Home,
@@ -24,7 +24,7 @@ const LABEL_COLOR = {
  *   onSetDefault – () => void
  *   isSelected – bool — highlight border
  */
-const AddressCard = ({ address, onSelect, onEdit, onDelete, onSetDefault, isSelected }) => {
+const AddressCard = ({ address, onSelect, onEdit, onDelete, onSetDefault, onShare, isSelected }) => {
     const Icon = LABEL_ICON[address.label] || MapPin;
     const color = LABEL_COLOR[address.label] || LABEL_COLOR.Other;
 
@@ -84,6 +84,16 @@ const AddressCard = ({ address, onSelect, onEdit, onDelete, onSetDefault, isSele
                     </button>
                 )}
                 <div className="flex items-center gap-1 ml-auto">
+                    {/* Share button — only shown if address has coordinates */}
+                    {onShare && (address.latitude || address.lat) && (
+                        <button
+                            onClick={onShare}
+                            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                            title="Share location"
+                        >
+                            <Share2 size={13} />
+                        </button>
+                    )}
                     <button
                         onClick={onEdit}
                         className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"

@@ -147,7 +147,7 @@ export default function Account() {
 
                         {/* Link to Seller Dashboard if they are seller (Optional/Preview style) */}
                         <Link
-                            to="/seller-login"
+                            to="/seller"
                             className="glass-card sm:col-span-2 rounded-[1.5rem] p-5 flex items-center justify-between group bg-white/60 hover:bg-slate-800 transition-all duration-300 border border-slate-200 hover:border-slate-800"
                         >
                             <div className="flex items-center space-x-4">

@@ -46,7 +46,6 @@ const Play = React.lazy(() => import('./pages/Play'));
 const SellerUploadShort = React.lazy(() => import('./pages/SellerUploadShort'));
 const Wishlist = React.lazy(() => import('./pages/Wishlist'));
 const Explore = React.lazy(() => import('./pages/Explore'));
-const SellerLogin = React.lazy(() => import('./pages/SellerLogin'));
 const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
 const SetupShop = React.lazy(() => import('./pages/SetupShop'));
 const AddProduct = React.lazy(() => import('./pages/AddProduct'));
@@ -99,7 +98,6 @@ const AnimatedRoutes = () => {
                                 <Route path="/oauth-success" element={<OAuthSuccess />} />
                                 <Route path="/play" element={<Play />} />
                                 <Route path="/explore" element={<Explore />} />
-                                <Route path="/seller-login" element={<SellerLogin />} />
                                 {/* Protected Routes */}
                                 <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                                 <Route path="/buyer-dashboard" element={<BuyerProtectedRoute><BuyerDashboard /></BuyerProtectedRoute>} />

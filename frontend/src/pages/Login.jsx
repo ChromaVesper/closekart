@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Phone, Lock, Key, ArrowRight, ShoppingBag, Store, Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Phone, Lock, Key, ArrowRight, ShoppingBag, Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +20,7 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [showPw, setShowPw] = useState(false);
     const [isSignup, setIsSignup] = useState(false);
-    const [role, setRole] = useState("buyer");
+
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
@@ -78,7 +78,7 @@ export default function Login() {
             let userRole = 'buyer';
             if (isSignup) {
                 const result = await createUserWithEmailAndPassword(auth, email, password);
-                userRole = await saveUserToFirestore(result.user, role);
+                userRole = await saveUserToFirestore(result.user, 'buyer');
                 await exchangeFirebaseToken(result.user, userRole);
             } else {
                 const result = await signInWithEmailAndPassword(auth, email, password);
@@ -111,7 +111,7 @@ export default function Login() {
         try {
             if (!confirmationResult) return;
             const result = await confirmationResult.confirm(otp);
-            const userRole = await saveUserToFirestore(result.user, role);
+            const userRole = await saveUserToFirestore(result.user, 'buyer');
             await exchangeFirebaseToken(result.user, userRole);
             redirectUser(userRole);
         } catch { setError("Invalid OTP. Please try again."); } finally { setLoading(false); }
@@ -168,27 +168,15 @@ export default function Login() {
                                     exit={{ opacity: 0, height: 0 }}
                                     className="mb-6 overflow-hidden"
                                 >
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">I want to join as</p>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {[
-                                            { val: 'buyer', icon: ShoppingBag, label: 'Buyer', sub: 'Shop & discover', color: 'indigo' },
-                                            { val: 'seller', icon: Store, label: 'Seller', sub: 'Sell locally', color: 'purple' },
-                                        ].map(({ val, icon: Icon, label, sub, color }) => (
-                                            <button
-                                                key={val}
-                                                type="button"
-                                                onClick={() => setRole(val)}
-                                                className={`p-3.5 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-1.5 ${role === val
-                                                    ? `border-${color}-400 bg-${color}-50/60 shadow-sm`
-                                                    : 'border-gray-100 bg-gray-50/80 hover:border-gray-200'}`}
-                                            >
-                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${role === val ? `bg-gradient-to-br from-${color}-400 to-${color}-600 shadow-md` : 'bg-gray-100'}`}>
-                                                    <Icon size={17} className={role === val ? 'text-white' : 'text-gray-400'} />
-                                                </div>
-                                                <span className={`text-sm font-black ${role === val ? `text-${color}-700` : 'text-gray-600'}`}>{label}</span>
-                                                <span className="text-[10px] text-gray-400 font-medium">{sub}</span>
-                                            </button>
-                                        ))}
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">Joining as a Buyer</p>
+                                    <div className="flex items-center gap-3 p-3.5 rounded-2xl border-2 border-indigo-400 bg-indigo-50/60 shadow-sm">
+                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-indigo-400 to-indigo-600 shadow-md">
+                                            <ShoppingBag size={17} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-black text-indigo-700 block">Buyer</span>
+                                            <span className="text-[10px] text-gray-400 font-medium">Shop &amp; discover</span>
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}
@@ -333,23 +321,15 @@ export default function Login() {
                             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                         </div>
 
-                        {/* Google buttons */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {[
-                                { role: 'buyer', label: 'Buyer', color: 'blue' },
-                                { role: 'seller', label: 'Seller', color: 'indigo' },
-                            ].map(({ role: r, label, color }) => (
-                                <button
-                                    key={r}
-                                    onClick={() => handleGoogleLogin(r)}
-                                    disabled={loading}
-                                    className={`flex items-center justify-center gap-2.5 py-3 px-3 rounded-2xl border border-gray-200 bg-white hover:bg-${color}-50/60 hover:border-${color}-200 transition-all duration-200 font-bold text-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] group`}
-                                >
-                                    <GoogleIcon />
-                                    <span className={`text-xs group-hover:text-${color}-700 transition-colors`}>Google · {label}</span>
-                                </button>
-                            ))}
-                        </div>
+                        {/* Google button */}
+                        <button
+                            onClick={() => handleGoogleLogin('buyer')}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center gap-2.5 py-3 px-3 rounded-2xl border border-gray-200 bg-white hover:bg-blue-50/60 hover:border-blue-200 transition-all duration-200 font-bold text-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] group"
+                        >
+                            <GoogleIcon />
+                            <span className="text-xs group-hover:text-blue-700 transition-colors">Continue with Google</span>
+                        </button>
                     </div>
                 </div>
 

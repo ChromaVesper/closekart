@@ -5,7 +5,7 @@ import FounderBadge from './FounderBadge';
 
 const Footer = () => {
     return (
-        <footer className="relative overflow-hidden mt-16">
+        <footer className="relative overflow-hidden">
             {/* Dark gradient background */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-900 to-indigo-950" />
             {/* Mesh */}
@@ -14,14 +14,14 @@ const Footer = () => {
                 <div className="absolute bottom-[-20%] right-[-5%] w-80 h-80 bg-purple-500/15 rounded-full blur-3xl" />
             </div>
 
-            <div className="relative pt-16 pb-8">
-                <div className="container mx-auto px-6 lg:px-8">
+            <div className="relative pt-14 pb-8">
+                <div className="px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto">
 
-                    {/* Top Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+                    {/* Top Row — 1 col mobile, 2 col sm, 4 col lg */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 
-                        {/* Brand — spans 2 cols */}
-                        <div className="lg:col-span-2">
+                        {/* Brand */}
+                        <div className="sm:col-span-2 lg:col-span-1">
                             <Link to="/" className="flex items-center gap-2.5 group mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform">
                                     <Zap size={18} className="text-white fill-white" strokeWidth={0} />

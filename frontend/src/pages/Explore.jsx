@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { Search, Package, Compass, ShoppingBag, Star, Tag } from 'lucide-react';
+import { Search, Package, Compass, ShoppingBag, MapPin } from 'lucide-react';
+import { useUserLocation } from '../context/LocationContext';
+import { haversineKm } from '../hooks/useNearbyShops';
+import DistanceFilter from '../components/DistanceFilter';
+
+const DEFAULT_RADIUS_KM = 10;
 
 // ─── Skeleton Card ────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
@@ -56,7 +61,6 @@ const ProductCard = ({ product }) => {
                         <Package size={44} className="text-gray-200" strokeWidth={1.5} />
                     </div>
                 )}
-                {/* Out of stock overlay */}
                 {!product.inStock && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
                         <span className="px-3 py-1 bg-red-500 text-white text-xs font-black rounded-full uppercase tracking-widest">
@@ -64,10 +68,15 @@ const ProductCard = ({ product }) => {
                         </span>
                     </div>
                 )}
-                {/* Category badge */}
                 <span className={`absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${catColor} shadow-sm`}>
                     {product.category || 'General'}
                 </span>
+                {/* Distance badge if available */}
+                {product.distanceKm != null && (
+                    <span className="absolute top-3 right-3 text-[10px] font-black px-2 py-0.5 rounded-full bg-white/90 text-indigo-600 shadow-sm">
+                        {product.distanceKm} km
+                    </span>
+                )}
             </div>
 
             {/* Info */}
@@ -104,18 +113,25 @@ const CATEGORIES = ['All', 'Food', 'Grocery', 'Electronics', 'Fashion', 'Beverag
 
 // ─── MAIN EXPLORE PAGE ────────────────────────────────────────────────────────
 export default function Explore() {
+    const { coords, fetchGPSAddress } = useUserLocation();
     const [products, setProducts] = useState([]);
+    const [shops, setShops] = useState([]); // shop docs for distance lookup
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
+    const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
 
+    // Fetch products + shops once
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchAll = async () => {
             try {
-                const snap = await getDocs(collection(db, 'products'));
-                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                setProducts(data);
+                const [prodSnap, shopSnap] = await Promise.all([
+                    getDocs(collection(db, 'products')),
+                    getDocs(collection(db, 'shops')),
+                ]);
+                setProducts(prodSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setShops(shopSnap.docs.map(d => ({ id: d.id, ...d.data() })));
             } catch (err) {
                 console.error('Explore fetch error:', err);
                 setError('Could not load products. Please try again.');
@@ -123,15 +139,47 @@ export default function Explore() {
                 setLoading(false);
             }
         };
-        fetchProducts();
+        fetchAll();
     }, []);
 
-    // Filtered products
-    const filtered = products.filter(p => {
-        const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.shopName?.toLowerCase().includes(search.toLowerCase());
-        const matchCat = activeCategory === 'All' || p.category === activeCategory;
-        return matchSearch && matchCat;
-    });
+    // Build shopId → distanceKm map whenever coords or radiusKm changes
+    const shopDistanceMap = useMemo(() => {
+        if (!coords?.latitude || !coords?.longitude) return {};
+        const map = {};
+        shops.forEach(s => {
+            const lat = s.lat ?? s.location?.coordinates?.[1];
+            const lng = s.lng ?? s.location?.coordinates?.[0];
+            if (lat != null && lng != null) {
+                map[s.id] = +haversineKm(coords.latitude, coords.longitude, lat, lng).toFixed(1);
+            }
+        });
+        return map;
+    }, [shops, coords?.latitude, coords?.longitude]);
+
+    // Filtered + distance-annotated products
+    const filtered = useMemo(() => {
+        return products
+            .map(p => ({
+                ...p,
+                distanceKm: shopDistanceMap[p.shopId] ?? null,
+            }))
+            .filter(p => {
+                const matchSearch = !search ||
+                    p.name?.toLowerCase().includes(search.toLowerCase()) ||
+                    p.shopName?.toLowerCase().includes(search.toLowerCase());
+                const matchCat = activeCategory === 'All' || p.category === activeCategory;
+                // Distance filter: only apply if coords are available AND product has a known shop distance
+                const matchDist = !coords?.latitude || p.distanceKm == null || p.distanceKm <= radiusKm;
+                return matchSearch && matchCat && matchDist;
+            })
+            .sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
+    }, [products, shopDistanceMap, search, activeCategory, radiusKm, coords]);
+
+    // Count unique shops in filtered results (for DistanceFilter label)
+    const nearbyShopCount = useMemo(() => {
+        if (!coords?.latitude) return null;
+        return new Set(filtered.filter(p => p.distanceKm != null).map(p => p.shopId)).size;
+    }, [filtered, coords]);
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-24">
@@ -163,9 +211,21 @@ export default function Explore() {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto px-4 -mt-10">
+            <div className="max-w-6xl mx-auto px-4 -mt-10 space-y-4">
+
+                {/* ── Distance Filter ── (only when location known) */}
+                {coords?.latitude && (
+                    <DistanceFilter
+                        radiusKm={radiusKm}
+                        onChange={setRadiusKm}
+                        onRefresh={fetchGPSAddress}
+                        loading={loading}
+                        shopCount={nearbyShopCount}
+                    />
+                )}
+
                 {/* Category Filter */}
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-6">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {CATEGORIES.map(cat => (
                         <button
                             key={cat}
@@ -183,18 +243,19 @@ export default function Explore() {
 
                 {/* Error */}
                 {error && (
-                    <div className="bg-red-50 border border-red-100 text-red-700 rounded-2xl p-4 mb-6 text-sm font-bold text-center">
+                    <div className="bg-red-50 border border-red-100 text-red-700 rounded-2xl p-4 text-sm font-bold text-center">
                         {error}
                     </div>
                 )}
 
-                {/* Results count */}
+                {/* Results count + clear */}
                 {!loading && (
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between">
                         <p className="text-sm font-bold text-gray-500">
                             {filtered.length} product{filtered.length !== 1 ? 's' : ''} found
+                            {coords?.latitude && ` within ${radiusKm} km`}
                         </p>
-                        {search && (
+                        {(search || activeCategory !== 'All') && (
                             <button
                                 onClick={() => { setSearch(''); setActiveCategory('All'); }}
                                 className="text-xs font-bold text-indigo-600 hover:underline"
@@ -211,14 +272,30 @@ export default function Explore() {
                         {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-center">
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
                             <ShoppingBag size={32} className="text-indigo-300" />
                         </div>
-                        <h3 className="text-lg font-black text-gray-800 mb-1">No Products Found</h3>
-                        <p className="text-gray-400 text-sm max-w-xs">
-                            {search ? `No results for "${search}". Try a different keyword.` : 'No products available right now. Check back soon!'}
+                        <h3 className="text-lg font-black text-gray-800 mb-1">
+                            {coords?.latitude
+                                ? `No products within ${radiusKm} km`
+                                : 'No Products Found'}
+                        </h3>
+                        <p className="text-gray-400 text-sm max-w-xs mb-4">
+                            {search
+                                ? `No results for "${search}". Try a different keyword.`
+                                : coords?.latitude
+                                    ? 'Try expanding the distance range above.'
+                                    : 'No products available right now. Check back soon!'}
                         </p>
+                        {coords?.latitude && (
+                            <button
+                                onClick={() => setRadiusKm(r => Math.min(r + 10, 100))}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-black rounded-2xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/25"
+                            >
+                                <MapPin size={14} /> Expand to {Math.min(radiusKm + 10, 100)} km
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

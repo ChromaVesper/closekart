@@ -1,54 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useUserLocation } from '../context/LocationContext';
 import { Sparkles, MapPin, Store, ArrowRight, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db } from '../firebase';
 import SearchBar from '../components/SearchBar';
 import CategoryScroll from '../components/CategoryScroll';
 import HeroCarousel from '../components/HeroCarousel';
 import ShopMap from '../components/ShopMap';
+import DistanceFilter from '../components/DistanceFilter';
+import { useNearbyShops } from '../hooks/useNearbyShops';
 import { useNavigate } from 'react-router-dom';
 
+const DEFAULT_RADIUS_KM = 5;
+
 const Home = () => {
-    const { coords } = useUserLocation();
-    const [shops, setShops] = useState([]);
-    const [shopsLoading, setShopsLoading] = useState(false);
+    const { coords, fetchGPSAddress } = useUserLocation();
+    const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
     const navigate = useNavigate();
 
-    const getDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    };
+    // ── live shop feed, re-fetches whenever coords or radiusKm change
+    const { shops, loading: shopsLoading } = useNearbyShops(coords, radiusKm);
 
-    useEffect(() => {
-        if (!coords?.latitude || !coords?.longitude) return;
-        setShopsLoading(true);
-        const fetchNearby = async () => {
-            try {
-                const q = query(collection(db, 'shops'), where('isOpen', '==', true), limit(20));
-                const snap = await getDocs(q);
-                const all = snap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() }));
-                const filtered = all
-                    .map(s => ({ ...s, distanceKm: getDistance(coords.latitude, coords.longitude, s.lat, s.lng).toFixed(1) }))
-                    .filter(s => s.distanceKm <= 5)
-                    .sort((a, b) => a.distanceKm - b.distanceKm);
-                setShops(filtered);
-            } catch (e) {
-                console.error(e);
-                setShops([]);
-            } finally {
-                setShopsLoading(false);
-            }
-        };
-        fetchNearby();
-    }, [coords?.latitude, coords?.longitude]);
+    const handleRefreshLocation = () => {
+        fetchGPSAddress(); // re-trigger GPS → context updates → hook re-fetches
+    };
 
     return (
         <motion.div
@@ -92,16 +66,31 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* ── MAP SECTION ── */}
+            {/* ── DISTANCE FILTER + MAP ── */}
             {coords && (
-                <div className="mt-6 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+                <div className="mt-6 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-4">
                     <SectionHeader
                         icon={<MapPin size={16} className="text-indigo-500" />}
                         title="Stores Around You"
-                        subtitle="Live map of open shops within 5km"
+                        subtitle="Adjust the distance to discover more or fewer shops"
                     />
-                    <div className="mt-4 rounded-3xl overflow-hidden shadow-lg border border-white/80">
-                        <ShopMap shops={shops} userLocation={coords} radius={5000} />
+
+                    {/* ── Distance filter control ── */}
+                    <DistanceFilter
+                        radiusKm={radiusKm}
+                        onChange={setRadiusKm}
+                        onRefresh={handleRefreshLocation}
+                        loading={shopsLoading}
+                        shopCount={shops.length}
+                    />
+
+                    {/* ── Map ── */}
+                    <div className="rounded-3xl overflow-hidden shadow-lg border border-white/80">
+                        <ShopMap
+                            shops={shops}
+                            userLocation={coords}
+                            radius={radiusKm * 1000} // ShopMap takes metres
+                        />
                     </div>
                 </div>
             )}
@@ -112,7 +101,9 @@ const Home = () => {
                     <SectionHeader
                         icon={<Sparkles size={16} className="text-amber-500" />}
                         title="Recommended For You"
-                        subtitle={coords ? 'Fresh finds near your location' : 'Enable location for best results'}
+                        subtitle={coords
+                            ? `Fresh finds within ${radiusKm} km`
+                            : 'Enable location for best results'}
                         noMargin
                     />
                     {shops.length > 0 && (
@@ -132,7 +123,7 @@ const Home = () => {
                             ? shops.map((shop, idx) => (
                                 <ShopCard key={shop._id} shop={shop} index={idx} onClick={() => navigate(`/shop/${shop._id}`)} />
                             ))
-                            : <EmptyState />
+                            : <EmptyState radiusKm={radiusKm} onExpand={() => setRadiusKm(r => Math.min(r + 5, 50))} />
                     }
                 </div>
             </div>
@@ -177,10 +168,7 @@ const ShopCard = ({ shop, index, onClick }) => (
                     <Store size={36} className="text-indigo-300" />
                 </div>
             )}
-            {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* Status badge */}
             <div className="absolute top-3 right-3">
                 <span className={`text-[10px] font-black px-2 py-1 rounded-full ${shop.isOpen ? 'bg-emerald-400/90 text-white' : 'bg-red-500/90 text-white'} backdrop-blur-sm`}>
                     {shop.isOpen ? '● Open' : '✕ Closed'}
@@ -192,7 +180,6 @@ const ShopCard = ({ shop, index, onClick }) => (
         <div className="p-4 flex flex-col flex-1">
             <h3 className="font-extrabold text-gray-900 text-base tracking-tight truncate">{shop.shopName}</h3>
             <span className="text-xs font-semibold text-gray-400 mt-0.5 truncate">{shop.category}</span>
-
             <div className="mt-auto pt-3 flex items-center justify-between">
                 <div className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-xl">
                     ⭐ {shop.rating || 'New'}
@@ -219,19 +206,27 @@ const ShopSkeleton = () => (
     </div>
 );
 
-const EmptyState = () => (
+const EmptyState = ({ radiusKm, onExpand }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full mx-auto max-w-md py-16 px-8 text-center rounded-3xl bg-white/80 border border-white/80 shadow-sm"
+        className="w-full mx-auto max-w-md py-12 px-8 text-center rounded-3xl bg-white/80 border border-white/80 shadow-sm"
     >
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 flex items-center justify-center mx-auto mb-5 shadow-sm">
-            <Store size={36} className="text-indigo-300" />
+        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <Store size={28} className="text-indigo-300" />
         </div>
-        <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">No shops nearby</h3>
-        <p className="text-sm text-gray-500 font-medium leading-relaxed">
-            Enable location services or try searching a different area.
+        <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">
+            No shops within {radiusKm} km
+        </h3>
+        <p className="text-sm text-gray-500 font-medium leading-relaxed mb-4">
+            Try expanding the search radius to discover more shops.
         </p>
+        <button
+            onClick={onExpand}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-black rounded-2xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/25"
+        >
+            Expand to {Math.min(radiusKm + 5, 50)} km <ArrowRight size={14} />
+        </button>
     </motion.div>
 );
 

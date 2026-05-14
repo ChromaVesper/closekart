@@ -39,7 +39,6 @@ function SetViewOnLoad({ lat, lng, zoom }) {
     useEffect(() => {
         if (!didSet.current && isFinite(lat) && isFinite(lng)) {
             map.setView([lat, lng], zoom, { animate: false });
-            console.log('[SharedLocation] Map centered successfully at', lat, lng, 'zoom', zoom);
             didSet.current = true;
         }
     }, [map, lat, lng, zoom]);
@@ -61,9 +60,6 @@ function SetViewOnLoad({ lat, lng, zoom }) {
  * We must parse the query string from INSIDE the hash, not from search.
  */
 function parseCoordsFromUrl(href) {
-    console.log('[SharedLocation] Received URL:', href);
-    console.log('[SharedLocation] Hash:', window.location.hash);
-
     let queryString = '';
 
     // ── Strategy 1: parse from hash fragment (HashRouter) ─────────────────────
@@ -89,7 +85,6 @@ function parseCoordsFromUrl(href) {
         queryString = window.location.search.slice(1);
     }
 
-    console.log('[SharedLocation] Extracted query string:', queryString || '(empty)');
 
     if (!queryString) return { lat: NaN, lng: NaN };
 
@@ -101,9 +96,6 @@ function parseCoordsFromUrl(href) {
 
     const lat = rawLat !== null ? parseFloat(rawLat) : NaN;
     const lng = rawLng !== null ? parseFloat(rawLng) : NaN;
-
-    console.log('[SharedLocation] Parsed lat:', lat);
-    console.log('[SharedLocation] Parsed lng:', lng);
 
     return { lat, lng };
 }

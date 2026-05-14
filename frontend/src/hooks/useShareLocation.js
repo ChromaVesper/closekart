@@ -44,10 +44,6 @@ export function buildShareUrl(lat, lng) {
 
     const url = `${cleanBase}/#/select-address?lat=${latStr}&lng=${lngStr}`;
 
-    console.log('[ShareLocation] Generated Latitude:', latStr);
-    console.log('[ShareLocation] Generated Longitude:', lngStr);
-    console.log('[ShareLocation] Generated Share URL:', url);
-
     return url;
 }
 
@@ -86,13 +82,9 @@ function getCurrentPosition() {
         }
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                console.log('[ShareLocation] Current GPS:', position);
-                console.log('[ShareLocation] Latitude:', position.coords.latitude);
-                console.log('[ShareLocation] Longitude:', position.coords.longitude);
                 resolve(position);
             },
             (err) => {
-                console.warn('[ShareLocation] GPS error code:', err.code, 'message:', err.message);
                 reject(err);
             },
             GEO_OPTIONS
@@ -196,7 +188,6 @@ export function useShareLocation() {
                 : err.code === 3
                 ? 'Location timed out. Please try again.'
                 : (err.message || 'Could not get your location.');
-            console.error('[ShareLocation] shareLiveLocation error:', msg);
             setError(msg);
             setStatus('error');
         }
@@ -219,7 +210,6 @@ export function useShareLocation() {
             const result = await shareOrCopy(url, 'Delivery Address on CloseKart');
             setStatus(result === 'cancelled' ? 'idle' : result);
         } catch (err) {
-            console.error('[ShareLocation] shareAddress error:', err.message);
             setError(err.message);
             setStatus('error');
         }

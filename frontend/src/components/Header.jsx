@@ -3,7 +3,7 @@ import { Search, User, MapPin, ChevronDown, Bell, Zap } from 'lucide-react';
 import { useUserLocation } from '../context/LocationContext';
 import { useAddress } from '../context/AddressContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Heart, ShoppingBag, Store, ShoppingCart, Settings } from 'lucide-react';
+import { LogOut, Heart, ShoppingBag, ShoppingCart, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -56,7 +56,7 @@ const Header = () => {
         displayName = locationName;
     }
 
-    const isSeller = profile?.role === 'seller';
+    const isSeller = false; // buyer-only platform
 
     return (
         <>
@@ -168,8 +168,8 @@ const Header = () => {
                                     <span className="text-xs font-bold text-gray-800 max-w-[90px] truncate">
                                         {(profile?.name || user.displayName || 'Account').split(' ')[0]}
                                     </span>
-                                    <span className="text-[10px] font-semibold text-indigo-500 mt-0.5">
-                                        {isSeller ? '✦ Seller' : 'Buyer'}
+                                    <span className="text-[10px] font-semibold text-emerald-500 mt-0.5">
+                                        Buyer
                                     </span>
                                 </div>
                                 <ChevronDown
@@ -204,8 +204,8 @@ const Header = () => {
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-black text-gray-900 truncate">{profile?.name || user.displayName || 'User'}</p>
                                                     <p className="text-xs text-gray-500 font-medium truncate mt-0.5">{user.email}</p>
-                                                    <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isSeller ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                                                        {isSeller ? '✦ Seller Account' : '✓ Buyer Account'}
+                                                    <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">
+                                                        ✓ Buyer Account
                                                     </span>
                                                 </div>
                                             </div>
@@ -213,18 +213,8 @@ const Header = () => {
 
                                         {/* Menu Items */}
                                         <div className="px-2 space-y-0.5">
-                                            {isSeller ? (
-                                                <>
-                                                    <DropItem icon={Store} label="Seller Dashboard" to="/seller" gradient="from-indigo-500 to-purple-500" onClick={() => setProfileOpen(false)} />
-                                                    <DropItem icon={ShoppingBag} label="Manage Orders" to="/seller/orders" onClick={() => setProfileOpen(false)} />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <DropItem icon={User} label="Buyer Dashboard" to="/buyer-dashboard" gradient="from-blue-500 to-indigo-500" onClick={() => setProfileOpen(false)} />
-                                                    <DropItem icon={ShoppingBag} label="My Orders" to="/orders" onClick={() => setProfileOpen(false)} />
-                                                    <DropItem icon={Heart} label="My Wishlist" to="/wishlist" onClick={() => setProfileOpen(false)} />
-                                                </>
-                                            )}
+                                            <DropItem icon={ShoppingBag} label="My Orders" to="/orders" onClick={() => setProfileOpen(false)} />
+                                            <DropItem icon={Heart} label="My Wishlist" to="/wishlist" onClick={() => setProfileOpen(false)} />
                                             <DropItem icon={Settings} label="Account Settings" to="/account" onClick={() => setProfileOpen(false)} />
                                         </div>
 

@@ -5,7 +5,7 @@ import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     RecaptchaVerifier, signInWithPhoneNumber
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Phone, Lock, Key, ArrowRight, ShoppingBag, Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import api from '../services/api';
@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Login() {
     const navigate = useNavigate();
-    const { user, profile, role: contextRole, loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [activeTab, setActiveTab] = useState("email");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -28,18 +28,12 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    // Redirect already-logged-in buyers to account
     React.useEffect(() => {
-        if (!authLoading && user && contextRole) {
-            if (contextRole === 'seller') navigate('/seller-dashboard', { replace: true });
-            else if (contextRole === 'buyer') navigate('/buyer-dashboard', { replace: true });
-            else navigate('/account', { replace: true });
-        }
-    }, [user, contextRole, authLoading, navigate]);
+        if (!authLoading && user) navigate('/account', { replace: true });
+    }, [user, authLoading, navigate]);
 
-    const redirectUser = (userRole) => {
-        if (!userRole) { navigate("/select-role"); return; }
-        navigate(userRole === "seller" ? "/seller-dashboard" : "/buyer-dashboard", { replace: true });
-    };
+    const redirectUser = () => navigate('/account', { replace: true });
 
     const exchangeFirebaseToken = async (user, userRole) => {
         try {
@@ -48,45 +42,41 @@ export default function Login() {
         } catch (err) { console.error("Token exchange failed:", err); }
     };
 
-    const saveUserToFirestore = async (user, overrideRole = role) => {
-        const userRef = doc(db, 'users', user.uid);
+    const saveUserToFirestore = async (fbUser) => {
+        const userRef = doc(db, 'users', fbUser.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            await setDoc(userRef, { userId: user.uid, name: user.displayName || 'CloseKart User', email: user.email || '', phone: user.phoneNumber || '', role: overrideRole, status: 'active', createdAt: serverTimestamp() });
-            return overrideRole;
+            await setDoc(userRef, {
+                userId: fbUser.uid,
+                name: fbUser.displayName || 'CloseKart User',
+                email: fbUser.email || '',
+                phone: fbUser.phoneNumber || '',
+                createdAt: serverTimestamp()
+            });
         }
-        const currentRole = userSnap.data().role || 'buyer';
-        if (overrideRole === 'seller' && currentRole === 'buyer') {
-            await updateDoc(userRef, { role: 'seller', status: 'active' });
-            return 'seller';
-        }
-        return currentRole;
     };
 
-    const handleGoogleLogin = async (selectedRole) => {
-        try { setError(""); setLoading(true);
+    const handleGoogleLogin = async () => {
+        try { setError(''); setLoading(true);
             const result = await signInWithPopup(auth, new GoogleAuthProvider());
-            const userRole = await saveUserToFirestore(result.user, selectedRole);
-            await exchangeFirebaseToken(result.user, userRole);
-            redirectUser(userRole);
+            await saveUserToFirestore(result.user);
+            await exchangeFirebaseToken(result.user, 'buyer');
+            redirectUser();
         } catch (e) { setError(e.message); } finally { setLoading(false); }
     };
 
     const handleEmailAuth = async (e) => {
-        e.preventDefault(); setLoading(true); setError("");
+        e.preventDefault(); setLoading(true); setError('');
         try {
-            let userRole = 'buyer';
             if (isSignup) {
                 const result = await createUserWithEmailAndPassword(auth, email, password);
-                userRole = await saveUserToFirestore(result.user, 'buyer');
-                await exchangeFirebaseToken(result.user, userRole);
+                await saveUserToFirestore(result.user);
+                await exchangeFirebaseToken(result.user, 'buyer');
             } else {
                 const result = await signInWithEmailAndPassword(auth, email, password);
-                const snap = await getDoc(doc(db, 'users', result.user.uid));
-                if (snap.exists()) userRole = snap.data().role || 'buyer';
-                await exchangeFirebaseToken(result.user, userRole);
+                await exchangeFirebaseToken(result.user, 'buyer');
             }
-            redirectUser(userRole);
+            redirectUser();
         } catch (e) { setError(e.message); } finally { setLoading(false); }
     };
 
@@ -107,14 +97,14 @@ export default function Login() {
     };
 
     const handleVerifyOTP = async (e) => {
-        e?.preventDefault(); setLoading(true); setError("");
+        e?.preventDefault(); setLoading(true); setError('');
         try {
             if (!confirmationResult) return;
             const result = await confirmationResult.confirm(otp);
-            const userRole = await saveUserToFirestore(result.user, 'buyer');
-            await exchangeFirebaseToken(result.user, userRole);
-            redirectUser(userRole);
-        } catch { setError("Invalid OTP. Please try again."); } finally { setLoading(false); }
+            await saveUserToFirestore(result.user);
+            await exchangeFirebaseToken(result.user, 'buyer');
+            redirectUser();
+        } catch { setError('Invalid OTP. Please try again.'); } finally { setLoading(false); }
     };
 
     return (

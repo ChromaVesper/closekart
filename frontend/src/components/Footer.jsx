@@ -47,8 +47,8 @@ const Footer = () => {
                                 {[
                                     { label: 'About Us', to: '/about' },
                                     { label: 'Browse Shops', to: '/shops' },
-                                    { label: 'Sell on CloseKart', to: '/seller-login' },
-                                    { label: 'SwapKeeper', to: '/swapkeeper/dashboard' },
+                                    { label: 'Explore', to: '/explore' },
+                                    { label: 'Help Center', to: '/help' },
                                 ].map(l => (
                                     <li key={l.label}>
                                         <Link to={l.to} className="text-sm text-gray-400 hover:text-white transition-colors font-medium group flex items-center gap-1.5">

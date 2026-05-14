@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { Package, Heart, User, HelpCircle, LogOut, ChevronRight, Settings, Grid, MapPin, Share2, CheckCircle, Loader, AlertCircle } from "lucide-react";
+import { Package, Heart, User, HelpCircle, LogOut, ChevronRight, Settings, MapPin, Share2, CheckCircle, Loader, AlertCircle } from "lucide-react";
 import { useShareLocation } from '../hooks/useShareLocation';
 
 export default function Account() {
@@ -189,24 +189,6 @@ export default function Account() {
                             </div>
                         </button>
 
-                        {/* Link to Seller Dashboard if they are seller (Optional/Preview style) */}
-                        <Link
-                            to="/seller"
-                            className="glass-card sm:col-span-2 rounded-[1.5rem] p-5 flex items-center justify-between group bg-white/60 hover:bg-slate-800 transition-all duration-300 border border-slate-200 hover:border-slate-800"
-                        >
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-slate-100 p-3 rounded-[1rem] text-slate-700 group-hover:bg-slate-700 group-hover:text-white transition-colors">
-                                    <Grid size={24} strokeWidth={2} />
-                                </div>
-                                <div>
-                                    <h3 className="text-base font-extrabold text-gray-900 group-hover:text-white transition-colors tracking-tight">Go to Seller Dashboard</h3>
-                                    <p className="text-xs text-gray-500 mt-0.5 font-medium group-hover:text-slate-300">Manage your shop and products</p>
-                                </div>
-                            </div>
-                            <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-slate-700 group-hover:translate-x-1 transition-all">
-                                <ChevronRight className="text-gray-400 group-hover:text-white" size={20} strokeWidth={2.5} />
-                            </div>
-                        </Link>
                     </div>
 
                     {/* Logout Button */}

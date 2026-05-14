@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Compass, PlaySquare, LayoutGrid, User, ShoppingCart, Heart, Zap, Store, HelpCircle } from 'lucide-react';
+import { Home, Compass, PlaySquare, User, ShoppingCart, Heart, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext';
 const mainItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/explore', icon: Compass, label: 'Explore' },
-    { path: '/shops', icon: Store, label: 'Shops' },
     { path: '/play', icon: PlaySquare, label: 'Play' },
     { path: '/cart', icon: ShoppingCart, label: 'Cart', badge: 0 },
     { path: '/wishlist', icon: Heart, label: 'Wishlist' },
@@ -83,25 +82,6 @@ const DesktopSidebar = () => {
                         );
                     })}
 
-                    {/* Promo card */}
-                    <div className="mt-6 mx-1">
-                        <div className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-indigo-300/30">
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)]" />
-                            <div className="relative">
-                                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center mb-3">
-                                    <Zap size={16} className="text-white fill-white" strokeWidth={0} />
-                                </div>
-                                <p className="text-white font-black text-sm leading-tight">Sell on CloseKart</p>
-                                <p className="text-white/70 text-xs mt-1 leading-relaxed">Reach thousands of local buyers</p>
-                                <Link
-                                    to="/seller-login"
-                                    className="inline-block mt-3 px-4 py-1.5 bg-white text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-sm"
-                                >
-                                    Start Selling →
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
                 </nav>
 
                 {/* Bottom Items */}

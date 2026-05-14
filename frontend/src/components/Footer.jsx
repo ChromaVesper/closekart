@@ -94,7 +94,7 @@ const Footer = () => {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="https://instagram.com/akshay.lekh" target="_blank" rel="noopener noreferrer"
+                                    <a href="https://instagram.com/akshaylekh" target="_blank" rel="noopener noreferrer"
                                         className="flex items-center gap-2.5 text-sm text-gray-400 hover:text-pink-400 transition-colors font-medium group">
                                         <div className="w-7 h-7 rounded-lg bg-pink-500/15 group-hover:bg-pink-500/25 flex items-center justify-center transition-colors">
                                             <Instagram size={13} className="text-pink-400" />

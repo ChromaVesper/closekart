@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Search, User, MapPin, ChevronDown, Bell, Zap } from 'lucide-react';
 import { useUserLocation } from '../context/LocationContext';
 import { useAddress } from '../context/AddressContext';
@@ -9,12 +9,16 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Lazy-load AddressSelector — it pulls in Leaflet, keep it out of the main bundle
+const AddressSelector = lazy(() => import('./AddressSelector'));
+
 const Header = () => {
     const { locationName } = useUserLocation();
     const { selectedAddress } = useAddress();
     const { user, profile } = useAuth();
     const [profileOpen, setProfileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [showAddressModal, setShowAddressModal] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
@@ -55,6 +59,7 @@ const Header = () => {
     const isSeller = profile?.role === 'seller';
 
     return (
+        <>
         <motion.header
             initial={{ y: -80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -82,7 +87,7 @@ const Header = () => {
 
                     {/* Location chip — desktop */}
                     <button
-                        onClick={() => navigate('/select-address', { replace: false })}
+                        onClick={() => setShowAddressModal(true)}
                         className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-100/80 hover:border-indigo-200 transition-all duration-200 group max-w-[200px]"
                     >
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm shrink-0">
@@ -254,7 +259,7 @@ const Header = () => {
             {/* Mobile Location Strip */}
             <div
                 className="sm:hidden px-4 py-2 border-t border-gray-100/60 bg-white/60 backdrop-blur-sm flex items-center justify-between cursor-pointer active:bg-indigo-50/50 transition-colors"
-                onClick={() => navigate('/select-address', { replace: false })}
+                onClick={() => setShowAddressModal(true)}
             >
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
@@ -270,6 +275,41 @@ const Header = () => {
                 <ChevronDown size={13} className="text-gray-400 shrink-0" />
             </div>
         </motion.header>
+
+        {/* ── Address Selector Modal ─────────────────────────────────────────── */}
+        <AnimatePresence>
+            {showAddressModal && (
+                <motion.div
+                    key="address-modal-backdrop"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
+                    style={{ background: 'rgba(15,15,35,0.45)', backdropFilter: 'blur(4px)' }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowAddressModal(false); }}
+                >
+                    <motion.div
+                        key="address-modal-panel"
+                        initial={{ opacity: 0, y: 40, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 40, scale: 0.97 }}
+                        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                        className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Suspense fallback={
+                            <div className="flex items-center justify-center h-48 text-gray-400">
+                                <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        }>
+                            <AddressSelector onClose={() => setShowAddressModal(false)} />
+                        </Suspense>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+        </>
     );
 };
 

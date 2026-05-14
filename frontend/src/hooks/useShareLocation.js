@@ -44,6 +44,8 @@ export function buildShareUrl(lat, lng) {
 
     const url = `${cleanBase}/#/select-address?lat=${latStr}&lng=${lngStr}`;
 
+    console.log('Final Share URL:', url); // verify ?lat= and ?lng= are present
+
     return url;
 }
 

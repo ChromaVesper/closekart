@@ -1,50 +1,76 @@
 /**
  * useShareLocation — hook for generating and sharing a live GPS location URL.
  *
- * The app uses HashRouter, so shareable URLs must use the hash fragment:
+ * The app uses HashRouter on GitHub Pages, so shareable URLs use the format:
  *   https://chromavesper.github.io/closekart/#/select-address?lat=X&lng=Y
  *
  * This hook:
  *  1. Requests high-accuracy GPS from the device
- *  2. Validates the received coordinates
+ *  2. Validates the received coordinates (never null/NaN/undefined)
  *  3. Builds the correct shareable URL (HashRouter-aware)
- *  4. Copies to clipboard / uses Web Share API
+ *  4. Copies to clipboard / uses Web Share API (with HTTP fallback)
  *  5. Returns status for the UI to display
  */
 
 import { useState, useCallback } from 'react';
 
-// ─── Build a shareable URL that includes real coordinates ──────────────────────
+// ─── URL Builder ──────────────────────────────────────────────────────────────
 
 /**
  * Build the full shareable URL for a location.
- * Uses the app's current origin + pathname so it works on:
- *   - localhost:5173
- *   - chromavesper.github.io/closekart
+ *
+ * Works on:
+ *   - localhost:5173  → http://localhost:5173/#/select-address?lat=X&lng=Y
+ *   - chromavesper.github.io/closekart → .../closekart/#/select-address?lat=X&lng=Y
+ *
+ * Uses origin + pathname so it always points at the app root regardless of
+ * which route the user is currently on. The hash fragment carries the route
+ * + query params because HashRouter interprets everything after '#'.
  */
 export function buildShareUrl(lat, lng) {
-    // e.g. "https://chromavesper.github.io/closekart/"
-    const base = window.location.origin + window.location.pathname;
-    // HashRouter: anchor is the route, query params go INSIDE the hash fragment
-    const url = `${base}#/select-address?lat=${lat}&lng=${lng}`;
-    console.log('[ShareLocation] Generated Latitude:', lat);
-    console.log('[ShareLocation] Generated Longitude:', lng);
+    if (lat === null || lat === undefined || lng === null || lng === undefined) {
+        console.error('[ShareLocation] buildShareUrl called with null/undefined coords');
+        return null;
+    }
+
+    // Strip any trailing hash from pathname (shouldn't happen but be safe)
+    const base = window.location.origin + window.location.pathname.replace(/#.*$/, '');
+    // Ensure base doesn't end with trailing slash duplication
+    const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+
+    // Round to 6 decimal places (~11cm precision) to keep URLs clean
+    const latStr = Number(lat).toFixed(6);
+    const lngStr = Number(lng).toFixed(6);
+
+    const url = `${cleanBase}/#/select-address?lat=${latStr}&lng=${lngStr}`;
+
+    console.log('[ShareLocation] Generated Latitude:', latStr);
+    console.log('[ShareLocation] Generated Longitude:', lngStr);
     console.log('[ShareLocation] Generated Share URL:', url);
+
     return url;
 }
 
 /**
  * Build a share URL from a saved address object.
- * The address must have latitude and longitude fields.
+ * The address must have latitude/longitude (or lat/lng) fields.
+ * Guard against 0-valued coordinates using explicit null checks.
  */
 export function buildAddressShareUrl(address) {
-    const lat = address?.latitude ?? address?.lat;
-    const lng = address?.longitude ?? address?.lng;
-    if (!lat || !lng) return null;
-    return buildShareUrl(lat, lng);
+    const lat = address?.latitude !== undefined ? address.latitude : address?.lat;
+    const lng = address?.longitude !== undefined ? address.longitude : address?.lng;
+
+    // Explicit null/undefined check — 0 is a valid coordinate (equator/prime meridian)
+    if (lat === null || lat === undefined || lng === null || lng === undefined) return null;
+
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    if (!isFinite(latNum) || !isFinite(lngNum)) return null;
+
+    return buildShareUrl(latNum, lngNum);
 }
 
-// ─── GPS coordinate fetching ──────────────────────────────────────────────────
+// ─── GPS ──────────────────────────────────────────────────────────────────────
 
 const GEO_OPTIONS = {
     enableHighAccuracy: true,
@@ -61,10 +87,12 @@ function getCurrentPosition() {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 console.log('[ShareLocation] Current GPS:', position);
+                console.log('[ShareLocation] Latitude:', position.coords.latitude);
+                console.log('[ShareLocation] Longitude:', position.coords.longitude);
                 resolve(position);
             },
             (err) => {
-                console.warn('[ShareLocation] GPS error:', err.message);
+                console.warn('[ShareLocation] GPS error code:', err.code, 'message:', err.message);
                 reject(err);
             },
             GEO_OPTIONS
@@ -72,20 +100,46 @@ function getCurrentPosition() {
     });
 }
 
-// ─── Clipboard / Share API ───────────────────────────────────────────────────
+// ─── Clipboard (with HTTP fallback for non-HTTPS / older browsers) ────────────
+
+async function copyToClipboard(text) {
+    // Modern Clipboard API (requires HTTPS or localhost)
+    if (navigator.clipboard?.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return;
+        } catch {
+            // Fall through to execCommand fallback
+        }
+    }
+
+    // Fallback: document.execCommand (deprecated but still works in many browsers)
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+    } finally {
+        document.body.removeChild(ta);
+    }
+}
 
 async function shareOrCopy(url, title = 'My Location on CloseKart') {
+    // Web Share API — native mobile share sheet (Android/iOS)
     if (navigator.share) {
         try {
             await navigator.share({ title, url });
             return 'shared';
         } catch (e) {
-            // User cancelled or share failed — fallback to clipboard
-            if (e.name === 'AbortError') return 'cancelled';
+            if (e.name === 'AbortError') return 'cancelled'; // user dismissed sheet
+            // Other error — fall through to clipboard
         }
     }
-    // Fallback: copy to clipboard
-    await navigator.clipboard.writeText(url);
+    // Clipboard fallback
+    await copyToClipboard(url);
     return 'copied';
 }
 
@@ -95,22 +149,23 @@ async function shareOrCopy(url, title = 'My Location on CloseKart') {
  * useShareLocation()
  *
  * Returns:
- *   shareLiveLocation()  — gets GPS then shares URL
- *   shareAddress(addr)   — shares URL for a saved address
+ *   shareLiveLocation()  — fetches GPS, builds URL, copies/shares it
+ *   shareAddress(addr)   — builds URL from saved address coords
  *   status               — 'idle' | 'loading' | 'copied' | 'shared' | 'error'
- *   error                — error message string or null
- *   reset()              — reset state to idle
+ *   error                — human-readable error string or null
+ *   reset()              — reset back to idle
  */
 export function useShareLocation() {
     const [status, setStatus] = useState('idle');
     const [error, setError] = useState(null);
+    const [lastUrl, setLastUrl] = useState(null);
 
     const reset = useCallback(() => {
         setStatus('idle');
         setError(null);
     }, []);
 
-    /** Share the user's current live GPS position */
+    /** Get live GPS, build URL, share/copy it */
     const shareLiveLocation = useCallback(async () => {
         setStatus('loading');
         setError(null);
@@ -119,45 +174,57 @@ export function useShareLocation() {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
 
-            console.log('[ShareLocation] Latitude:', lat);
-            console.log('[ShareLocation] Longitude:', lng);
-
-            // Validate
+            // Strict validation
             if (
                 typeof lat !== 'number' || !isFinite(lat) || lat < -90 || lat > 90 ||
                 typeof lng !== 'number' || !isFinite(lng) || lng < -180 || lng > 180
             ) {
-                throw new Error(`Invalid coordinates: lat=${lat}, lng=${lng}`);
+                throw new Error(`GPS returned invalid coordinates: lat=${lat}, lng=${lng}`);
             }
 
             const url = buildShareUrl(lat, lng);
+            if (!url) throw new Error('Failed to build share URL');
+
+            setLastUrl(url);
             const result = await shareOrCopy(url);
             setStatus(result === 'cancelled' ? 'idle' : result);
         } catch (err) {
-            console.error('[ShareLocation] Error:', err.message);
-            setError(err.message || 'Could not get your location. Please allow location access.');
+            const msg = err.code === 1
+                ? 'Location permission denied. Please allow location access in your browser settings.'
+                : err.code === 2
+                ? 'Location unavailable. Make sure GPS is enabled.'
+                : err.code === 3
+                ? 'Location timed out. Please try again.'
+                : (err.message || 'Could not get your location.');
+            console.error('[ShareLocation] shareLiveLocation error:', msg);
+            setError(msg);
             setStatus('error');
         }
-        // Auto-reset after 3 seconds
-        setTimeout(() => setStatus(s => (s !== 'idle' && s !== 'error') ? 'idle' : s), 3000);
+        // Auto-reset success state after 4 seconds
+        setTimeout(() => setStatus(s => (s !== 'idle' && s !== 'error') ? 'idle' : s), 4000);
     }, []);
 
-    /** Share a saved address by its coordinates */
+    /** Share a saved address by its lat/lng */
     const shareAddress = useCallback(async (address) => {
         setStatus('loading');
         setError(null);
         try {
             const url = buildAddressShareUrl(address);
-            if (!url) throw new Error('This address does not have coordinates. Edit it and pick a location on the map first.');
-            const result = await shareOrCopy(url, `Delivery Address on CloseKart`);
+            if (!url) {
+                throw new Error(
+                    'This address has no map coordinates. Edit the address and drop a pin on the map to add them.'
+                );
+            }
+            setLastUrl(url);
+            const result = await shareOrCopy(url, 'Delivery Address on CloseKart');
             setStatus(result === 'cancelled' ? 'idle' : result);
         } catch (err) {
-            console.error('[ShareLocation] Address share error:', err.message);
+            console.error('[ShareLocation] shareAddress error:', err.message);
             setError(err.message);
             setStatus('error');
         }
-        setTimeout(() => setStatus(s => (s !== 'idle' && s !== 'error') ? 'idle' : s), 3000);
+        setTimeout(() => setStatus(s => (s !== 'idle' && s !== 'error') ? 'idle' : s), 4000);
     }, []);
 
-    return { shareLiveLocation, shareAddress, status, error, reset };
+    return { shareLiveLocation, shareAddress, status, error, lastUrl, reset };
 }
